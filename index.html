@@ -47,7 +47,7 @@
         }
 
         function onExpire() {
-          console.log('Support code expired.');
+          console.log('Código de suporte expirado.');
           document.getElementById('support-code').innerHTML = `
             <div class="code-box-display expired">
                 <p class="code-box-sub" style="color: var(--orange);">O código de suporte expirou ou a sessão terminou.</p>
@@ -60,11 +60,32 @@
         function openInvoice() {
             document.getElementById('invoice-modal').classList.remove('hidden');
             document.body.style.overflow = 'hidden'; // Disable background scrolling
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         function closeInvoice() {
             document.getElementById('invoice-modal').classList.add('hidden');
             document.body.style.overflow = 'auto'; // Re-enable background scrolling
+        }
+
+        // Switch Tabs inside Invoice Modal
+        function switchInvoiceTab(tabName) {
+            const htmlTab = document.getElementById('tab-html-btn');
+            const pdfTab = document.getElementById('tab-pdf-btn');
+            const htmlContent = document.getElementById('invoice-html-content');
+            const pdfContent = document.getElementById('invoice-pdf-content');
+
+            if (tabName === 'html') {
+                htmlTab.classList.add('active-tab');
+                pdfTab.classList.remove('active-tab');
+                htmlContent.classList.remove('hidden');
+                pdfContent.classList.add('hidden');
+            } else {
+                pdfTab.classList.add('active-tab');
+                htmlTab.classList.remove('active-tab');
+                htmlContent.classList.add('hidden');
+                pdfContent.classList.remove('hidden');
+            }
         }
     </script>
     
@@ -478,7 +499,7 @@
             max-height: 90vh;
             border-radius: 24px;
             box-shadow: var(--shadow-xl);
-            overflow-y: auto;
+            overflow: hidden;
             border: 1px solid var(--slate-200);
             display: flex;
             flex-direction: column;
@@ -524,6 +545,44 @@
         .close-modal-btn:hover {
             background-color: var(--slate-100);
             color: var(--slate-900);
+        }
+
+        /* Invoice Viewer Tab Layout Styling */
+        .invoice-tabs {
+            display: flex;
+            background-color: var(--slate-100);
+            padding: 4px;
+            border-radius: 12px;
+            margin: 20px 32px 0 32px;
+            gap: 4px;
+        }
+
+        .invoice-tab-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--slate-600);
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .invoice-tab-btn.active-tab {
+            background-color: var(--white);
+            color: var(--primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .invoice-scrollable-body {
+            flex: 1;
+            overflow-y: auto;
         }
 
         .invoice-paper {
@@ -658,7 +717,7 @@
         }
 
         .mb-details {
-            flex-1: 1;
+            flex-grow: 1;
             font-size: 12px;
         }
 
@@ -682,6 +741,20 @@
             border-top: 1px solid var(--slate-100);
             padding-top: 16px;
             margin-top: 24px;
+        }
+
+        /* PDF Viewer Specific Containers */
+        .pdf-embed-container {
+            width: 100%;
+            height: 600px;
+            border-radius: 0 0 24px 24px;
+            overflow: hidden;
+        }
+        
+        .pdf-fallback-message {
+            padding: 60px 40px;
+            text-align: center;
+            color: var(--slate-600);
         }
 
         @keyframes fadeIn {
@@ -727,13 +800,13 @@
                 <div class="badge">
                     <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> Energia Reimaginada
                 </div>
-                <h1>O futuro da energia é <span class="text-primary">smarter.</span></h1>
+                <h1>O futuro da energia é mais <span class="text-primary">inteligente.</span></h1>
                 <p class="hero-description">
-                    Connect your home to the grid of tomorrow. Save up to 25% on bills with AI-driven optimization.
+                    Ligue a sua casa à rede do amanhã. Poupe até 25% nas faturas com a nossa otimização inteligente por IA.
                 </p>
                 <div class="flex gap-4">
                     <button class="btn btn-primary btn-large" onclick="openInvoice()"><i data-lucide="file-text"></i> Abrir Fatura (76,98 €)</button>
-                    <a href="#cobrowse" class="btn btn-secondary btn-large">Co-Browse Support</a>
+                    <a href="#cobrowse" class="btn btn-secondary btn-large">Suporte Co-Browse</a>
                 </div>
             </div>
             
@@ -742,8 +815,8 @@
                     <div class="usage-card">
                         <div class="flex justify-between items-center">
                             <div>
-                                <h3 style="margin:0; font-weight: 900; font-size: 20px;">Weekly Usage</h3>
-                                <p style="margin:0; font-size: 12px; color: var(--slate-400);">Real-time analytics</p>
+                                <h3 style="margin:0; font-weight: 900; font-size: 20px;">Consumo Semanal</h3>
+                                <p style="margin:0; font-size: 12px; color: var(--slate-400);">Análise em tempo real</p>
                             </div>
                             <i data-lucide="bar-chart-3" style="color: var(--primary);"></i>
                         </div>
@@ -768,22 +841,22 @@
                     <div class="icon-box" style="background: var(--primary-light); color: var(--primary);">
                         <i data-lucide="zap"></i>
                     </div>
-                    <h3 class="feature-title">Real-time Monitoring</h3>
-                    <p class="feature-text">See exactly where every watt goes in real-time with our smart grid technology.</p>
+                    <h3 class="feature-title">Monitorização em Tempo Real</h3>
+                    <p class="feature-text">Veja exatamente para onde vai cada watt em tempo real com a nossa tecnologia de rede inteligente.</p>
                 </div>
                 <div class="feature-card">
                     <div class="icon-box" style="background: var(--green-50); color: var(--green-600);">
                         <i data-lucide="leaf"></i>
                     </div>
-                    <h3 class="feature-title">Eco-Optimization</h3>
-                    <p class="feature-text">AI automatically switches to solar production when generation peaks.</p>
+                    <h3 class="feature-title">Eco-Otimização</h3>
+                    <p class="feature-text">A IA muda automaticamente para a produção solar quando a geração atinge o pico.</p>
                 </div>
                 <div class="feature-card">
                     <div class="icon-box" style="background: var(--purple-50); color: var(--purple-600);">
                         <i data-lucide="bell"></i>
                     </div>
-                    <h3 class="feature-title">Smart Alerts</h3>
-                    <p class="feature-text">Get notified before demand surges and save significantly on your monthly bill.</p>
+                    <h3 class="feature-title">Alertas Inteligentes</h3>
+                    <p class="feature-text">Receba notificações antes dos picos de procura e poupe significativamente na sua fatura mensal.</p>
                 </div>
             </div>
         </div>
@@ -792,19 +865,19 @@
     <!-- AI Eco-Planner Section -->
     <section id="planner" class="planner">
         <div class="container">
-            <h2>Draft Your Custom <span style="color: var(--blue-400);">AI Energy Plan</span></h2>
-            <p>Describe your home setup, and our AI will generate a high-tech efficiency strategy for you.</p>
+            <h2>Crie o seu Plano de <span style="color: var(--blue-400);">Energia com IA</span></h2>
+            <p>Descreva a configuração da sua casa e a nossa IA irá gerar uma estratégia de eficiência de alta tecnologia para si.</p>
             
             <div class="planner-card">
                 <div class="planner-form">
-                    <input id="plan-input" type="text" placeholder="e.g., '3 bedroom house, electric car'...">
+                    <input id="plan-input" type="text" placeholder="ex: 'Casa T3, carro elétrico'...">
                     <button id="generate-plan-btn" class="btn btn-primary" style="padding: 16px 32px;">
-                        <i data-lucide="zap"></i><span>Generate</span>
+                        <i data-lucide="zap"></i><span>Gerar Plano</span>
                     </button>
                 </div>
                 <div id="plan-result" class="plan-result hidden">
                     <div class="plan-header">
-                        <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Strategy Report
+                        <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Relatório de Estratégia
                     </div>
                     <div id="plan-text" class="plan-text"></div>
                 </div>
@@ -829,154 +902,185 @@
         </div>
     </section>
 
-    <!-- INTERACTIVE DIGITAL BILL MODAL (Fatura Voltora Demo.pdf replica) -->
+    <!-- INTERACTIVE DIGITAL BILL MODAL (Fatura Voltora Demo.pdf replica with PDF Embed Tab) -->
     <div id="invoice-modal" class="modal-backdrop hidden">
         <div class="invoice-card">
             <div class="invoice-card-header">
-                <h3><i data-lucide="file-text" style="color: var(--primary);"></i> Fatura Digital — Abril 2024</h3>
+                <h3><i data-lucide="file-text" style="color: var(--primary);"></i> Fatura do Cliente — Senhor Costa</h3>
                 <button class="close-modal-btn" onclick="closeInvoice()">
                     <i data-lucide="x"></i>
                 </button>
             </div>
+
+            <!-- Tab Switcher -->
+            <div class="invoice-tabs">
+                <button id="tab-html-btn" class="invoice-tab-btn active-tab" onclick="switchInvoiceTab('html')">
+                    <i data-lucide="laptop" style="width: 16px; height: 16px;"></i> Fatura Digital (HTML)
+                </button>
+                <button id="tab-pdf-btn" class="invoice-tab-btn" onclick="switchInvoiceTab('pdf')">
+                    <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> Fatura PDF Original
+                </button>
+            </div>
             
-            <div class="invoice-paper">
-                <!-- Header of the Document -->
-                <div class="invoice-brand-row">
-                    <div>
-                        <div class="logo" style="margin-bottom: 8px;">
-                            <i data-lucide="zap" class="fill-current"></i>
-                            <span>Voltora</span>
+            <div class="invoice-scrollable-body">
+                <!-- HTML replica tab -->
+                <div id="invoice-html-content" class="invoice-paper">
+                    <!-- Header of the Document -->
+                    <div class="invoice-brand-row">
+                        <div>
+                            <div class="logo" style="margin-bottom: 8px;">
+                                <i data-lucide="zap" class="fill-current"></i>
+                                <span>Voltora</span>
+                            </div>
+                            <p style="margin: 0; font-weight: 700; color: var(--slate-500); font-size: 11px; text-transform: uppercase;">Voltora Energia, S.A.</p>
                         </div>
-                        <p style="margin: 0; font-weight: 700; color: var(--slate-500); font-size: 11px; text-transform: uppercase;">Voltora Energia, S.A.</p>
-                    </div>
-                    <div class="invoice-company-details">
-                        Contribuinte N.º 509 876 543<br>
-                        Avenida da Boavista, 1200<br>
-                        4100-111 Porto, Portugal
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 24px;">
-                    <h2 style="font-size: 22px; font-weight: 900; margin: 0 0 8px 0; letter-spacing: -0.5px;">FATURA DE ELETRICIDADE</h2>
-                    <div style="display: flex; gap: 24px; font-size: 11px; color: var(--slate-500); font-weight: 600;">
-                        <span><strong>N.º Fatura:</strong> FT2024/049821</span>
-                        <span><strong>Emissão:</strong> 05/05/2024</span>
-                        <span><strong>Vencimento:</strong> 25/05/2024</span>
-                    </div>
-                </div>
-
-                <!-- Customer Details Grid -->
-                <div class="invoice-grid-meta">
-                    <div class="meta-box">
-                        <p class="meta-box-title">Dados do Cliente</p>
-                        <div class="meta-box-content">
-                            <p style="font-size: 15px; font-weight: 800; color: var(--slate-900); margin-bottom: 8px;">Senhor Costa</p>
-                            <p>Rua de Santa Catarina, 450, 3.º Dto</p>
-                            <p>4000-447 Porto</p>
-                            <p>Portugal</p>
-                            <p style="margin-top: 8px;"><strong>NIF:</strong> 210 987 654</p>
+                        <div class="invoice-company-details">
+                            Contribuinte N.º 509 876 543<br>
+                            Avenida da Boavista, 1200<br>
+                            4100-111 Porto, Portugal
                         </div>
                     </div>
-                    <div class="meta-box">
-                        <p class="meta-box-title">Local de Consumo</p>
-                        <div class="meta-box-content">
-                            <p><strong>CPE:</strong> PT 0002 0000 1234 5678 AA</p>
-                            <p style="margin-top: 8px;"><strong>Morada de Fornecimento:</strong></p>
-                            <p>Rua de Santa Catarina, 450, 3.º Dto</p>
-                            <p>4000-447 Porto</p>
-                            <p style="margin-top: 8px;"><strong>Potência Contratada:</strong> 6,90 kVA (Simples)</p>
+
+                    <div style="margin-bottom: 24px;">
+                        <h2 style="font-size: 22px; font-weight: 900; margin: 0 0 8px 0; letter-spacing: -0.5px;">FATURA DE ELETRICIDADE</h2>
+                        <div style="display: flex; gap: 24px; font-size: 11px; color: var(--slate-500); font-weight: 600;">
+                            <span><strong>N.º Fatura:</strong> FT2024/049821</span>
+                            <span><strong>Emissão:</strong> 05/05/2024</span>
+                            <span><strong>Vencimento:</strong> 25/05/2024</span>
                         </div>
                     </div>
-                </div>
 
-                <!-- Amount Box -->
-                <div class="invoice-amount-summary">
-                    <div>
-                        <div class="invoice-amount-text">Total a Pagar</div>
-                        <div style="font-size: 11px; color: var(--slate-500); font-weight: 600; margin-top: 4px;">Pagar confortavelmente até 25/05/2024</div>
-                    </div>
-                    <div class="invoice-amount-value">76,98 €</div>
-                </div>
-
-                <!-- Detail Table -->
-                <h4 style="font-size: 14px; font-weight: 900; margin-bottom: 12px;">Detalhe de Faturação</h4>
-                <table class="invoice-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 50%;">Descrição do Serviço / Tarifa</th>
-                            <th style="text-align: center;">Qtd</th>
-                            <th style="text-align: right;">Preço Unit.</th>
-                            <th style="text-align: center;">IVA</th>
-                            <th style="text-align: right;">Total (S/ IVA)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Termo Fixo de Potência</strong> (6,90 kVA)</td>
-                            <td style="text-align: center;">30 dias</td>
-                            <td style="text-align: right;">0,4210 €/dia</td>
-                            <td style="text-align: center;">23%</td>
-                            <td style="text-align: right;">12,63 €</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Consumo de Energia Ativa</strong></td>
-                            <td style="text-align: center;">310 kWh</td>
-                            <td style="text-align: right;">0,1520 €/kWh</td>
-                            <td style="text-align: center;">23%</td>
-                            <td style="text-align: right;">47,12 €</td>
-                        </tr>
-                        <tr>
-                            <td>Imposto Especial de Consumo (IEC)</td>
-                            <td style="text-align: center;">310 kWh</td>
-                            <td style="text-align: right;">0,0010 €/kWh</td>
-                            <td style="text-align: center;">23%</td>
-                            <td style="text-align: right;">0,31 €</td>
-                        </tr>
-                        <tr>
-                            <td>Taxa de Exploração DGEG</td>
-                            <td style="text-align: center;">1 un</td>
-                            <td style="text-align: right;">0,0700 €/un</td>
-                            <td style="text-align: center;">23%</td>
-                            <td style="text-align: right;">0,07 €</td>
-                        </tr>
-                        <tr>
-                            <td>Contribuição Audiovisual (CAV)</td>
-                            <td style="text-align: center;">1 un</td>
-                            <td style="text-align: right;">2,8500 €/un</td>
-                            <td style="text-align: center;">6%</td>
-                            <td style="text-align: right;">2,85 €</td>
-                        </tr>
-                        <tr class="total-row">
-                            <td colspan="4">Subtotal (S/ IVA)</td>
-                            <td style="text-align: right;">62,98 €</td>
-                        </tr>
-                        <tr>
-                            <td colspan="4">Total IVA (6% e 23%)</td>
-                            <td style="text-align: right; font-weight: 700;">14,00 €</td>
-                        </tr>
-                        <tr style="font-size: 15px; font-weight: 900; background-color: var(--slate-50);">
-                            <td colspan="4" style="padding: 16px 12px;">Total a Pagar</td>
-                            <td style="text-align: right; padding: 16px 12px; color: var(--primary);">76,98 €</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <!-- Multibanco Payment Block -->
-                <div class="multibanco-container">
-                    <div class="mb-logo-box">MB</div>
-                    <div class="mb-details">
-                        <strong style="font-size: 13px; color: #b45309;">Dados para Pagamento Multibanco</strong>
-                        <p style="margin: 2px 0 0 0; color: var(--slate-600);">Efetue o pagamento em qualquer caixa Multibanco ou através do seu Homebanking:</p>
-                        <div class="mb-grid">
-                            <strong>Entidade:</strong> <span>21678</span>
-                            <strong>Referência:</strong> <span>123 456 789</span>
-                            <strong>Montante:</strong> <span>76,98 €</span>
+                    <!-- Customer Details Grid -->
+                    <div class="invoice-grid-meta">
+                        <div class="meta-box">
+                            <p class="meta-box-title">Dados do Cliente</p>
+                            <div class="meta-box-content">
+                                <p style="font-size: 15px; font-weight: 800; color: var(--slate-900); margin-bottom: 8px;">Senhor Costa</p>
+                                <p>Rua de Santa Catarina, 450, 3.º Dto</p>
+                                <p>4000-447 Porto</p>
+                                <p>Portugal</p>
+                                <p style="margin-top: 8px;"><strong>NIF:</strong> 210 987 654</p>
+                            </div>
+                        </div>
+                        <div class="meta-box">
+                            <p class="meta-box-title">Local de Consumo</p>
+                            <div class="meta-box-content">
+                                <p><strong>CPE:</strong> PT 0002 0000 1234 5678 AA</p>
+                                <p style="margin-top: 8px;"><strong>Morada de Fornecimento:</strong></p>
+                                <p>Rua de Santa Catarina, 450, 3.º Dto</p>
+                                <p>4000-447 Porto</p>
+                                <p style="margin-top: 8px;"><strong>Potência Contratada:</strong> 6,90 kVA (Simples)</p>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Amount Box -->
+                    <div class="invoice-amount-summary">
+                        <div>
+                            <div class="invoice-amount-text">Total a Pagar</div>
+                            <div style="font-size: 11px; color: var(--slate-500); font-weight: 600; margin-top: 4px;">Pagar confortavelmente até 25/05/2024</div>
+                        </div>
+                        <div class="invoice-amount-value">76,98 €</div>
+                    </div>
+
+                    <!-- Detail Table -->
+                    <h4 style="font-size: 14px; font-weight: 900; margin-bottom: 12px;">Detalhe de Faturação</h4>
+                    <table class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50%;">Descrição do Serviço / Tarifa</th>
+                                <th style="text-align: center;">Qtd</th>
+                                <th style="text-align: right;">Preço Unit.</th>
+                                <th style="text-align: center;">IVA</th>
+                                <th style="text-align: right;">Total (S/ IVA)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Termo Fixo de Potência</strong> (6,90 kVA)</td>
+                                <td style="text-align: center;">30 dias</td>
+                                <td style="text-align: right;">0,4210 €/dia</td>
+                                <td style="text-align: center;">23%</td>
+                                <td style="text-align: right;">12,63 €</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Consumo de Energia Ativa</strong></td>
+                                <td style="text-align: center;">310 kWh</td>
+                                <td style="text-align: right;">0,1520 €/kWh</td>
+                                <td style="text-align: center;">23%</td>
+                                <td style="text-align: right;">47,12 €</td>
+                            </tr>
+                            <tr>
+                                <td>Imposto Especial de Consumo (IEC)</td>
+                                <td style="text-align: center;">310 kWh</td>
+                                <td style="text-align: right;">0,0010 €/kWh</td>
+                                <td style="text-align: center;">23%</td>
+                                <td style="text-align: right;">0,31 €</td>
+                            </tr>
+                            <tr>
+                                <td>Taxa de Exploração DGEG</td>
+                                <td style="text-align: center;">1 un</td>
+                                <td style="text-align: right;">0,0700 €/un</td>
+                                <td style="text-align: center;">23%</td>
+                                <td style="text-align: right;">0,07 €</td>
+                            </tr>
+                            <tr>
+                                <td>Contribuição Audiovisual (CAV)</td>
+                                <td style="text-align: center;">1 un</td>
+                                <td style="text-align: right;">2,8500 €/un</td>
+                                <td style="text-align: center;">6%</td>
+                                <td style="text-align: right;">2,85 €</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td colspan="4">Subtotal (S/ IVA)</td>
+                                <td style="text-align: right;">62,98 €</td>
+                            </tr>
+                            <tr>
+                                <td colspan="4">Total IVA (6% e 23%)</td>
+                                <td style="text-align: right; font-weight: 700;">14,00 €</td>
+                            </tr>
+                            <tr style="font-size: 15px; font-weight: 900; background-color: var(--slate-50);">
+                                <td colspan="4" style="padding: 16px 12px;">Total a Pagar</td>
+                                <td style="text-align: right; padding: 16px 12px; color: var(--primary);">76,98 €</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Multibanco Payment Block -->
+                    <div class="multibanco-container">
+                        <div class="mb-logo-box">MB</div>
+                        <div class="mb-details">
+                            <strong style="font-size: 13px; color: #b45309;">Dados para Pagamento Multibanco</strong>
+                            <p style="margin: 2px 0 0 0; color: var(--slate-600);">Efetue o pagamento em qualquer caixa Multibanco ou através do seu Homebanking:</p>
+                            <div class="mb-grid">
+                                <strong>Entidade:</strong> <span>21678</span>
+                                <strong>Referência:</strong> <span>123 456 789</span>
+                                <strong>Montante:</strong> <span>76,98 €</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="invoice-test-banner">
+                        DOCUMENTO DE TESTE: Produzido exclusivamente para fins de demonstração técnica no ambiente UJET Demo. Sem validade fiscal ou legal.
+                    </div>
                 </div>
 
-                <div class="invoice-test-banner">
-                    DOCUMENTO DE TESTE: Produzido exclusivamente para fins de demonstração técnica no ambiente UJET Demo. Sem validade fiscal ou legal.
+                <!-- Embedded PDF Viewer tab -->
+                <div id="invoice-pdf-content" class="hidden">
+                    <div class="pdf-embed-container">
+                        <object data="Fatura%20Voltora%20Demo.pdf" type="application/pdf" width="100%" height="100%">
+                            <iframe src="Fatura%20Voltora%20Demo.pdf" width="100%" height="100%" style="border: none;">
+                                <div class="pdf-fallback-message">
+                                    <i data-lucide="alert-triangle" style="width: 48px; height: 48px; color: var(--orange); margin: 0 auto 16px;"></i>
+                                    <h4 style="font-weight: 800; font-size: 16px; margin-bottom: 8px;">O seu navegador não suporta a visualização direta de PDFs</h4>
+                                    <p style="margin-bottom: 16px;">Pode descarregar o documento original utilizando o link abaixo para visualizar a fatura completa:</p>
+                                    <a href="Fatura%20Voltora%20Demo.pdf" download class="btn btn-primary" style="margin: 0 auto; display: inline-flex;">
+                                        <i data-lucide="download"></i> Descarregar Fatura PDF
+                                    </a>
+                                </div>
+                            </iframe>
+                        </object>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1013,7 +1117,7 @@
                     await new Promise(r => setTimeout(r, delay));
                     return callGemini(prompt, systemInstruction, retries - 1, delay * 2);
                 }
-                return "AI connection failed. ⚡";
+                return "Falha na ligação à IA. ⚡";
             }
         }
 
@@ -1025,14 +1129,14 @@
             const description = document.getElementById('plan-input').value;
             if (!description.trim()) return;
             
-            planBtn.innerHTML = "Thinking...";
+            planBtn.innerHTML = "A processar...";
             planBtn.disabled = true;
             
-            const result = await callGemini(description, "You are a specialized energy optimization engine for Voltora. Provide a structured, high-tech energy saving plan.");
+            const result = await callGemini(description, "És um motor de otimização de energia especializado para a Voltora. Fornece um plano de poupança de energia estruturado e de alta tecnologia em Português de Portugal (pt-PT).");
             
             planText.textContent = result;
             planResult.classList.remove('hidden');
-            planBtn.innerHTML = '<i data-lucide="zap"></i><span>Generate</span>';
+            planBtn.innerHTML = '<i data-lucide="zap"></i><span>Gerar Plano</span>';
             planBtn.disabled = false;
             lucide.createIcons();
             

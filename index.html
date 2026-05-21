@@ -55,6 +55,17 @@
           `;
           document.getElementById('generate-button').style.display = 'inline-flex';
         }
+
+        // Invoice Modal Control Functions
+        function openInvoice() {
+            document.getElementById('invoice-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Disable background scrolling
+        }
+
+        function closeInvoice() {
+            document.getElementById('invoice-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto'; // Re-enable background scrolling
+        }
     </script>
     
     <style>
@@ -68,6 +79,7 @@
             --slate-50: #f8fafc;
             --slate-100: #f1f5f9;
             --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
             --slate-400: #94a3b8;
             --slate-500: #64748b;
             --slate-600: #475569;
@@ -443,6 +455,235 @@
             line-height: 1.4;
         }
 
+        /* --- DIGITAL BILL MODAL STYLING --- */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .invoice-card {
+            background-color: var(--white);
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            border-radius: 24px;
+            box-shadow: var(--shadow-xl);
+            overflow-y: auto;
+            border: 1px solid var(--slate-200);
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .invoice-card-header {
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--slate-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--slate-50);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .invoice-card-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--slate-900);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .close-modal-btn {
+            background: var(--white);
+            border: 1px solid var(--slate-200);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--slate-500);
+        }
+
+        .close-modal-btn:hover {
+            background-color: var(--slate-100);
+            color: var(--slate-900);
+        }
+
+        .invoice-paper {
+            padding: 40px;
+            color: var(--slate-900);
+            font-size: 13px;
+        }
+
+        .invoice-brand-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 24px;
+            margin-bottom: 24px;
+        }
+
+        .invoice-company-details {
+            text-align: right;
+            font-size: 11px;
+            color: var(--slate-500);
+            line-height: 1.4;
+        }
+
+        .invoice-grid-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .meta-box {
+            background-color: var(--slate-50);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--slate-100);
+        }
+
+        .meta-box-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin: 0 0 10px 0;
+            letter-spacing: 0.05em;
+        }
+
+        .meta-box-content p {
+            margin: 4px 0;
+            font-weight: 500;
+            color: var(--slate-700);
+        }
+
+        .meta-box-content strong {
+            color: var(--slate-900);
+        }
+
+        .invoice-amount-summary {
+            background-color: var(--primary-light);
+            border: 1.5px solid var(--primary);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .invoice-amount-text {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .invoice-amount-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 32px;
+        }
+
+        .invoice-table th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--slate-200);
+            font-weight: 800;
+            color: var(--slate-500);
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .invoice-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--slate-100);
+            color: var(--slate-700);
+            font-weight: 500;
+        }
+
+        .invoice-table tr.total-row td {
+            border-top: 2px solid var(--slate-200);
+            font-weight: 800;
+            color: var(--slate-900);
+        }
+
+        .multibanco-container {
+            background-color: #fef3c7;
+            border: 1.5px solid #d97706;
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .mb-logo-box {
+            background-color: #0369a1;
+            color: var(--white);
+            font-weight: 900;
+            font-style: italic;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 18px;
+            text-align: center;
+            width: 60px;
+            letter-spacing: -1px;
+        }
+
+        .mb-details {
+            flex-1: 1;
+            font-size: 12px;
+        }
+
+        .mb-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 4px 16px;
+            margin-top: 8px;
+        }
+
+        .mb-grid strong {
+            color: var(--slate-900);
+        }
+
+        .invoice-test-banner {
+            text-align: center;
+            font-size: 10px;
+            color: var(--slate-400);
+            font-weight: 700;
+            text-transform: uppercase;
+            border-top: 1px solid var(--slate-100);
+            padding-top: 16px;
+            margin-top: 24px;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -470,9 +711,12 @@
                 <a href="#solutions" class="nav-link">Soluções</a>
                 <a href="#planner" class="nav-link">Eco-Planner</a>
                 <a href="#cobrowse" class="nav-link">Partilha de Ecrã</a>
+                <a href="javascript:void(0)" onclick="openInvoice()" class="nav-link" style="color: var(--primary); font-weight: 800; display: flex; align-items: center; gap: 4px;">
+                    <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> Minha Fatura
+                </a>
                 <a href="#" class="nav-link">Suporte</a>
             </div>
-            <button class="btn btn-primary">Aderir Agora</button>
+            <button class="btn btn-primary" onclick="openInvoice()">Ver Fatura</button>
         </div>
     </nav>
 
@@ -488,7 +732,7 @@
                     Connect your home to the grid of tomorrow. Save up to 25% on bills with AI-driven optimization.
                 </p>
                 <div class="flex gap-4">
-                    <button class="btn btn-primary btn-large">Get Started</button>
+                    <button class="btn btn-primary btn-large" onclick="openInvoice()"><i data-lucide="file-text"></i> Abrir Fatura (76,98 €)</button>
                     <a href="#cobrowse" class="btn btn-secondary btn-large">Co-Browse Support</a>
                 </div>
             </div>
@@ -584,6 +828,159 @@
             </div>
         </div>
     </section>
+
+    <!-- INTERACTIVE DIGITAL BILL MODAL (Fatura Voltora Demo.pdf replica) -->
+    <div id="invoice-modal" class="modal-backdrop hidden">
+        <div class="invoice-card">
+            <div class="invoice-card-header">
+                <h3><i data-lucide="file-text" style="color: var(--primary);"></i> Fatura Digital — Abril 2024</h3>
+                <button class="close-modal-btn" onclick="closeInvoice()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <div class="invoice-paper">
+                <!-- Header of the Document -->
+                <div class="invoice-brand-row">
+                    <div>
+                        <div class="logo" style="margin-bottom: 8px;">
+                            <i data-lucide="zap" class="fill-current"></i>
+                            <span>Voltora</span>
+                        </div>
+                        <p style="margin: 0; font-weight: 700; color: var(--slate-500); font-size: 11px; text-transform: uppercase;">Voltora Energia, S.A.</p>
+                    </div>
+                    <div class="invoice-company-details">
+                        Contribuinte N.º 509 876 543<br>
+                        Avenida da Boavista, 1200<br>
+                        4100-111 Porto, Portugal
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <h2 style="font-size: 22px; font-weight: 900; margin: 0 0 8px 0; letter-spacing: -0.5px;">FATURA DE ELETRICIDADE</h2>
+                    <div style="display: flex; gap: 24px; font-size: 11px; color: var(--slate-500); font-weight: 600;">
+                        <span><strong>N.º Fatura:</strong> FT2024/049821</span>
+                        <span><strong>Emissão:</strong> 05/05/2024</span>
+                        <span><strong>Vencimento:</strong> 25/05/2024</span>
+                    </div>
+                </div>
+
+                <!-- Customer Details Grid -->
+                <div class="invoice-grid-meta">
+                    <div class="meta-box">
+                        <p class="meta-box-title">Dados do Cliente</p>
+                        <div class="meta-box-content">
+                            <p style="font-size: 15px; font-weight: 800; color: var(--slate-900); margin-bottom: 8px;">Senhor Costa</p>
+                            <p>Rua de Santa Catarina, 450, 3.º Dto</p>
+                            <p>4000-447 Porto</p>
+                            <p>Portugal</p>
+                            <p style="margin-top: 8px;"><strong>NIF:</strong> 210 987 654</p>
+                        </div>
+                    </div>
+                    <div class="meta-box">
+                        <p class="meta-box-title">Local de Consumo</p>
+                        <div class="meta-box-content">
+                            <p><strong>CPE:</strong> PT 0002 0000 1234 5678 AA</p>
+                            <p style="margin-top: 8px;"><strong>Morada de Fornecimento:</strong></p>
+                            <p>Rua de Santa Catarina, 450, 3.º Dto</p>
+                            <p>4000-447 Porto</p>
+                            <p style="margin-top: 8px;"><strong>Potência Contratada:</strong> 6,90 kVA (Simples)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Amount Box -->
+                <div class="invoice-amount-summary">
+                    <div>
+                        <div class="invoice-amount-text">Total a Pagar</div>
+                        <div style="font-size: 11px; color: var(--slate-500); font-weight: 600; margin-top: 4px;">Pagar confortavelmente até 25/05/2024</div>
+                    </div>
+                    <div class="invoice-amount-value">76,98 €</div>
+                </div>
+
+                <!-- Detail Table -->
+                <h4 style="font-size: 14px; font-weight: 900; margin-bottom: 12px;">Detalhe de Faturação</h4>
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50%;">Descrição do Serviço / Tarifa</th>
+                            <th style="text-align: center;">Qtd</th>
+                            <th style="text-align: right;">Preço Unit.</th>
+                            <th style="text-align: center;">IVA</th>
+                            <th style="text-align: right;">Total (S/ IVA)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Termo Fixo de Potência</strong> (6,90 kVA)</td>
+                            <td style="text-align: center;">30 dias</td>
+                            <td style="text-align: right;">0,4210 €/dia</td>
+                            <td style="text-align: center;">23%</td>
+                            <td style="text-align: right;">12,63 €</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Consumo de Energia Ativa</strong></td>
+                            <td style="text-align: center;">310 kWh</td>
+                            <td style="text-align: right;">0,1520 €/kWh</td>
+                            <td style="text-align: center;">23%</td>
+                            <td style="text-align: right;">47,12 €</td>
+                        </tr>
+                        <tr>
+                            <td>Imposto Especial de Consumo (IEC)</td>
+                            <td style="text-align: center;">310 kWh</td>
+                            <td style="text-align: right;">0,0010 €/kWh</td>
+                            <td style="text-align: center;">23%</td>
+                            <td style="text-align: right;">0,31 €</td>
+                        </tr>
+                        <tr>
+                            <td>Taxa de Exploração DGEG</td>
+                            <td style="text-align: center;">1 un</td>
+                            <td style="text-align: right;">0,0700 €/un</td>
+                            <td style="text-align: center;">23%</td>
+                            <td style="text-align: right;">0,07 €</td>
+                        </tr>
+                        <tr>
+                            <td>Contribuição Audiovisual (CAV)</td>
+                            <td style="text-align: center;">1 un</td>
+                            <td style="text-align: right;">2,8500 €/un</td>
+                            <td style="text-align: center;">6%</td>
+                            <td style="text-align: right;">2,85 €</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td colspan="4">Subtotal (S/ IVA)</td>
+                            <td style="text-align: right;">62,98 €</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">Total IVA (6% e 23%)</td>
+                            <td style="text-align: right; font-weight: 700;">14,00 €</td>
+                        </tr>
+                        <tr style="font-size: 15px; font-weight: 900; background-color: var(--slate-50);">
+                            <td colspan="4" style="padding: 16px 12px;">Total a Pagar</td>
+                            <td style="text-align: right; padding: 16px 12px; color: var(--primary);">76,98 €</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Multibanco Payment Block -->
+                <div class="multibanco-container">
+                    <div class="mb-logo-box">MB</div>
+                    <div class="mb-details">
+                        <strong style="font-size: 13px; color: #b45309;">Dados para Pagamento Multibanco</strong>
+                        <p style="margin: 2px 0 0 0; color: var(--slate-600);">Efetue o pagamento em qualquer caixa Multibanco ou através do seu Homebanking:</p>
+                        <div class="mb-grid">
+                            <strong>Entidade:</strong> <span>21678</span>
+                            <strong>Referência:</strong> <span>123 456 789</span>
+                            <strong>Montante:</strong> <span>76,98 €</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="invoice-test-banner">
+                    DOCUMENTO DE TESTE: Produzido exclusivamente para fins de demonstração técnica no ambiente UJET Demo. Sem validade fiscal ou legal.
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <div class="container">

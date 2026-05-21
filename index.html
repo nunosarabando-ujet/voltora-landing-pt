@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voltora | O Futuro da Energia Inteligente</title>
     
-    <!-- Lucide for icons, fully self-contained CSS styles -->
+    <!-- Lucide para ícones, estilos CSS totalmente independentes -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- COBROWSE.IO INTEGRATION SCRIPT -->
+    <!-- SCRIPT DE INTEGRAÇÃO DO COBROWSE.IO -->
     <script type="text/javascript">
         var urlParams = new URLSearchParams(window.location.search);
 
@@ -17,19 +17,25 @@
         e=document.getElementsByTagName(t)[0];e.parentNode.insertBefore(s,e);s.onload=function()
         {r(w[c]);};}return p;}};});})(window,'script','CobrowseIO');
 
-        // Configures dynamic license & API URL parsing (or falls back to the Waystar demo tenant keys)
+        // Configura dinamicamente a licença e URL da API ou assume a chave demo da Waystar
         CobrowseIO.license = urlParams.get('license') || '0Blc4UGxQHHDNA'; 
         CobrowseIO.api = urlParams.get('api') || 'https://api.cobrowse.io';
         
+        // CONFIGURAÇÕES DE LINKS PDF PARA O CO-BROWSE (Suporta múltiplos padrões em simultâneo)
+        
+        // links in your website ending with the .pdf extension
+        // CobrowseIO.pdfLinks = ['*.pdf']
+
+        // links to the example.com domain with the path starting with /assets/pdfs/
+        // CobrowseIO.pdfLinks = ['https://example.com/assets/pdfs/*']
+
+        // links to any domain with /pdfs/ as part of the path and the .pdf extension
+        // CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
+        
+        // Ativação consolidada de todos os padrões para o ambiente de demonstração
+        CobrowseIO.pdfLinks = ['*.pdf', 'https://nunosarabando-ujet.github.io/voltora-landing-pt/*', '*/pdfs/*.pdf'];
+
         CobrowseIO.client().then(function(){
-                        // links in your website ending with the .pdf extension
-CobrowseIO.pdfLinks = ['*.pdf']
-
-// links to the example.com domain with the path starting with /assets/pdfs/
-CobrowseIO.pdfLinks = ['https://example.com/assets/pdfs/*']
-
-// links to any domain with /pdfs/ as part of the path and the .pdf extension
-CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
             CobrowseIO.start({allowIFrameStart:true});
         });
 
@@ -38,7 +44,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
             CobrowseIO.createSessionCode().then(function (code) {
               document.getElementById('generate-button').style.display = 'none';
               
-              // Custom styled dynamic code box
+              // Caixa de exibição do código formatado em conformidade com o tema
               document.getElementById('support-code').innerHTML = `
                 <div class="code-box-display">
                     <p class="code-box-label"><i class="lucide-sparkles"></i> Código de Sessão Ativo</p>
@@ -64,19 +70,20 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
           document.getElementById('generate-button').style.display = 'inline-flex';
         }
 
-        // Invoice Modal Control Functions
+        // Funções de Controlo do Modal de Faturação
         function openInvoice() {
             document.getElementById('invoice-modal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Disable background scrolling
+            document.body.style.overflow = 'hidden'; // Desativa scroll de fundo
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
+        // Fecha o Modal da Fatura
         function closeInvoice() {
             document.getElementById('invoice-modal').classList.add('hidden');
-            document.body.style.overflow = 'auto'; // Re-enable background scrolling
+            document.body.style.overflow = 'auto'; // Reativa scroll de fundo
         }
 
-        // Switch Tabs inside Invoice Modal
+        // Alternador de Abas dentro do Modal da Fatura
         function switchInvoiceTab(tabName) {
             const htmlTab = document.getElementById('tab-html-btn');
             const pdfTab = document.getElementById('tab-pdf-btn');
@@ -93,6 +100,67 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
                 htmlTab.classList.remove('active-tab');
                 htmlContent.classList.add('hidden');
                 pdfContent.classList.remove('hidden');
+                
+                // Resolve e renderiza o visualizador de PDF adaptado para dispositivos móveis
+                setupMobilePdfViewer();
+            }
+        }
+
+        // Visualizador Inteligente de PDFs para Dispositivos Móveis (Android/iOS)
+        function setupMobilePdfViewer() {
+            const container = document.getElementById('invoice-pdf-content');
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            const pdfRelativePath = "Fatura%20Voltora%20Demo.pdf";
+            const pdfAbsoluteUrl = new URL(pdfRelativePath, window.location.href).href;
+            
+            const isLocal = window.location.hostname === 'localhost' || 
+                            window.location.hostname === '127.0.0.1' || 
+                            window.location.protocol === 'file:';
+
+            if (isMobile && !isLocal) {
+                // Alojado online (ex: GitHub Pages) -> Renderiza o PDF inline usando o gview do Google
+                container.innerHTML = `
+                    <div class="pdf-embed-container">
+                        <iframe src="https://docs.google.com/gview?url=${encodeURIComponent(pdfAbsoluteUrl)}&embedded=true" 
+                                width="100%" height="100%" style="border: none;">
+                        </iframe>
+                    </div>
+                `;
+            } else if (isMobile && isLocal) {
+                // Testes locais em dispositivos móveis -> Avisa sobre limitações de rede local de forma elegante
+                container.innerHTML = `
+                    <div class="pdf-embed-container" style="background-color: var(--slate-50); display: flex; align-items: center; justify-content: center;">
+                        <div class="pdf-fallback-message">
+                            <i data-lucide="alert-triangle" style="width: 48px; height: 48px; color: var(--orange); margin: 0 auto 16px;"></i>
+                            <h4 style="font-weight: 800; font-size: 16px; margin-bottom: 8px;">Pré-visualização Local Indisponível em Dispositivos Móveis</h4>
+                            <p style="margin-bottom: 16px; font-size: 13px;">O visualizador de PDF móvel requer que o site esteja alojado online (ex: GitHub Pages). Pode descarregar a fatura original para visualizar no seu dispositivo:</p>
+                            <a href="${pdfRelativePath}" download class="btn btn-primary" style="margin: 0 auto; display: inline-flex;">
+                                <i data-lucide="download"></i> Descarregar Fatura PDF
+                            </a>
+                        </div>
+                    </div>
+                `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            } else {
+                // Vista Desktop padrão -> Elevada fidelidade com elemento object nativo
+                container.innerHTML = `
+                    <div class="pdf-embed-container">
+                        <object data="${pdfRelativePath}" type="application/pdf" width="100%" height="100%">
+                            <iframe src="${pdfRelativePath}" width="100%" height="100%" style="border: none;">
+                                <div class="pdf-fallback-message">
+                                    <i data-lucide="alert-triangle" style="width: 48px; height: 48px; color: var(--orange); margin: 0 auto 16px;"></i>
+                                    <h4 style="font-weight: 800; font-size: 16px; margin-bottom: 8px;">O seu navegador não suporta a visualização direta de PDFs</h4>
+                                    <p style="margin-bottom: 16px;">Pode descarregar o documento original utilizando o link abaixo para visualizar a fatura completa:</p>
+                                    <a href="${pdfRelativePath}" download class="btn btn-primary" style="margin: 0 auto; display: inline-flex;">
+                                        <i data-lucide="download"></i> Descarregar Fatura PDF
+                                    </a>
+                                </div>
+                            </iframe>
+                        </object>
+                    </div>
+                `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
             }
         }
     </script>
@@ -751,7 +819,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
             margin-top: 24px;
         }
 
-        /* PDF Viewer Specific Containers */
+        /* Contentores Específicos para Embeber PDF */
         .pdf-embed-container {
             width: 100%;
             height: 600px;
@@ -781,7 +849,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
 </head>
 <body>
 
-    <!-- Navigation -->
+    <!-- Navegação -->
     <nav>
         <div class="container flex justify-between items-center">
             <a href="#" class="logo">
@@ -801,7 +869,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
         </div>
     </nav>
 
-    <!-- Hero Section -->
+    <!-- Secção Hero -->
     <header class="hero">
         <div class="container hero-wrapper">
             <div class="hero-content">
@@ -841,7 +909,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
         </div>
     </header>
 
-    <!-- Features Section -->
+    <!-- Secção de Funcionalidades -->
     <section id="solutions" class="features">
         <div class="container">
             <div class="feature-grid">
@@ -870,7 +938,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
         </div>
     </section>
 
-    <!-- AI Eco-Planner Section -->
+    <!-- Secção Eco-Planner -->
     <section id="planner" class="planner">
         <div class="container">
             <h2>Crie o seu Plano de <span style="color: var(--blue-400);">Energia com IA</span></h2>
@@ -893,7 +961,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
         </div>
     </section>
 
-    <!-- Co-Browse Capability Demo Section -->
+    <!-- Secção Co-Browse -->
     <section id="cobrowse" class="cobrowse-section">
         <div class="container">
             <div class="cobrowse-container">
@@ -910,7 +978,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
         </div>
     </section>
 
-    <!-- INTERACTIVE DIGITAL BILL MODAL (Fatura Voltora Demo.pdf replica with PDF Embed Tab) -->
+    <!-- MODAL INTERATIVO DA FATURA DIGITAL -->
     <div id="invoice-modal" class="modal-backdrop hidden">
         <div class="invoice-card">
             <div class="invoice-card-header">
@@ -920,7 +988,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
                 </button>
             </div>
 
-            <!-- Tab Switcher -->
+            <!-- Alternador de Abas -->
             <div class="invoice-tabs">
                 <button id="tab-html-btn" class="invoice-tab-btn active-tab" onclick="switchInvoiceTab('html')">
                     <i data-lucide="laptop" style="width: 16px; height: 16px;"></i> Fatura Digital (HTML)
@@ -931,9 +999,9 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
             </div>
             
             <div class="invoice-scrollable-body">
-                <!-- HTML replica tab -->
+                <!-- Aba da Fatura Digital HTML -->
                 <div id="invoice-html-content" class="invoice-paper">
-                    <!-- Header of the Document -->
+                    <!-- Header do Documento -->
                     <div class="invoice-brand-row">
                         <div>
                             <div class="logo" style="margin-bottom: 8px;">
@@ -958,7 +1026,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
                         </div>
                     </div>
 
-                    <!-- Customer Details Grid -->
+                    <!-- Grelha de Informação do Cliente -->
                     <div class="invoice-grid-meta">
                         <div class="meta-box">
                             <p class="meta-box-title">Dados do Cliente</p>
@@ -982,7 +1050,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
                         </div>
                     </div>
 
-                    <!-- Amount Box -->
+                    <!-- Caixa de Valor Total -->
                     <div class="invoice-amount-summary">
                         <div>
                             <div class="invoice-amount-text">Total a Pagar</div>
@@ -991,7 +1059,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
                         <div class="invoice-amount-value">76,98 €</div>
                     </div>
 
-                    <!-- Detail Table -->
+                    <!-- Tabela de Detalhe -->
                     <h4 style="font-size: 14px; font-weight: 900; margin-bottom: 12px;">Detalhe de Faturação</h4>
                     <table class="invoice-table">
                         <thead>
@@ -1054,7 +1122,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
                         </tbody>
                     </table>
 
-                    <!-- Multibanco Payment Block -->
+                    <!-- Bloco de Pagamento Multibanco -->
                     <div class="multibanco-container">
                         <div class="mb-logo-box">MB</div>
                         <div class="mb-details">
@@ -1073,22 +1141,9 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
                     </div>
                 </div>
 
-                <!-- Embedded PDF Viewer tab -->
+                <!-- Aba de Visualização Dinâmica do PDF (Compatível com Android) -->
                 <div id="invoice-pdf-content" class="hidden">
-                    <div class="pdf-embed-container">
-                        <object data="https://nunosarabando-ujet.github.io/voltora-landing-pt/Fatura%20Voltora%20Demo.pdf" type="application/pdf" width="100%" height="100%">
-                            <iframe src="https://nunosarabando-ujet.github.io/voltora-landing-pt/Fatura%20Voltora%20Demo.pdf" width="100%" height="100%" style="border: none;">
-                                <div class="pdf-fallback-message">
-                                    <i data-lucide="alert-triangle" style="width: 48px; height: 48px; color: var(--orange); margin: 0 auto 16px;"></i>
-                                    <h4 style="font-weight: 800; font-size: 16px; margin-bottom: 8px;">O seu navegador não suporta a visualização direta de PDFs</h4>
-                                    <p style="margin-bottom: 16px;">Pode descarregar o documento original utilizando o link abaixo para visualizar a fatura completa:</p>
-                                    <a href="https://nunosarabando-ujet.github.io/voltora-landing-pt/Fatura%20Voltora%20Demo.pdf" download class="btn btn-primary" style="margin: 0 auto; display: inline-flex;">
-                                        <i data-lucide="download"></i> Descarregar Fatura PDF
-                                    </a>
-                                </div>
-                            </iframe>
-                        </object>
-                    </div>
+                    <!-- Conteúdo dinâmico preenchido pela função setupMobilePdfViewer() -->
                 </div>
             </div>
         </div>
@@ -1096,15 +1151,15 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
 
     <footer>
         <div class="container">
-            <p class="footer-text">&copy; 2024 Voltora Energy Systems Inc. All rights reserved.</p>
+            <p class="footer-text">&copy; 2024 Voltora Energy Systems Inc. Todos os direitos reservados.</p>
         </div>
     </footer>
 
     <script>
-        // Initialize Lucide Icons
+        // Inicializar ícones Lucide
         if (typeof lucide !== 'undefined') lucide.createIcons();
 
-        // Gemini API Configuration
+        // Configuração da API Gemini
         const apiKey = ""; 
         const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
 
@@ -1119,7 +1174,7 @@ CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
                     })
                 });
                 const data = await response.json();
-                return data.candidates?.[0]?.content?.parts?.[0]?.text || "Strategy report currently unavailable.";
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "Relatório de estratégia indisponível de momento.";
             } catch (error) {
                 if (retries > 0) {
                     await new Promise(r => setTimeout(r, delay));

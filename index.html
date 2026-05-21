@@ -5,8 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voltora | O Futuro da Energia Inteligente</title>
     
-    <!-- Lucide é mantido para ícones, mas o CSS é agora totalmente independente -->
+    <!-- Lucide for icons, fully self-contained CSS styles -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- COBROWSE.IO INTEGRATION SCRIPT -->
+    <script type="text/javascript">
+        var urlParams = new URLSearchParams(window.location.search);
+
+        (function(w,t,c,p,s,e){p=new Promise(function(r){w[c]={client:function(){if(!s){
+        s=document.createElement(t);s.src='https://js.cobrowse.io/CobrowseIO.js';s.async=1;
+        e=document.getElementsByTagName(t)[0];e.parentNode.insertBefore(s,e);s.onload=function()
+        {r(w[c]);};}return p;}};});})(window,'script','CobrowseIO');
+
+        // Configures dynamic license & API URL parsing (or falls back to the Waystar demo tenant keys)
+        CobrowseIO.license = urlParams.get('license') || '0Blc4UGxQHHDNA'; 
+        CobrowseIO.api = urlParams.get('api') || 'https://api.cobrowse.io';
+        
+        CobrowseIO.client().then(function(){
+            CobrowseIO.start({allowIFrameStart:true});
+        });
+
+        function generateSupportCode() {
+          CobrowseIO.client().then(function () {
+            CobrowseIO.createSessionCode().then(function (code) {
+              document.getElementById('generate-button').style.display = 'none';
+              
+              // Custom styled dynamic code box
+              document.getElementById('support-code').innerHTML = `
+                <div class="code-box-display">
+                    <p class="code-box-label"><i class="lucide-sparkles"></i> Código de Sessão Ativo</p>
+                    <div class="code-digits">${code.substr(0, 3)}-${code.substr(3, 6)}</div>
+                    <p class="code-box-sub">Partilhe este código de 6 dígitos com o agente da Voltora para iniciar a assistência remota.</p>
+                </div>
+              `;
+              
+              CobrowseIO.currentSession.on('ended', function () {
+                onExpire();
+              })
+            });
+          });
+        }
+
+        function onExpire() {
+          console.log('Support code expired.');
+          document.getElementById('support-code').innerHTML = `
+            <div class="code-box-display expired">
+                <p class="code-box-sub" style="color: var(--orange);">O código de suporte expirou ou a sessão terminou.</p>
+            </div>
+          `;
+          document.getElementById('generate-button').style.display = 'inline-flex';
+        }
+    </script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -31,9 +80,11 @@
             --purple-600: #9333ea;
             --blue-900: #1e3a8a;
             --blue-400: #60a5fa;
+            --orange: #f76901;
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             --shadow-blue: 0 10px 15px -3px rgba(37, 99, 235, 0.2);
+            --shadow-orange: 0 10px 15px -3px rgba(247, 105, 1, 0.3);
         }
 
         /* --- RESET & BASE --- */
@@ -86,7 +137,7 @@
         }
 
         .nav-links {
-            display: none; /* Mobile oculto por padrão */
+            display: none; /* Mobile hidden by default */
         }
 
         @media (min-width: 768px) {
@@ -106,7 +157,7 @@
 
         .nav-link:hover { color: var(--primary); }
 
-        /* --- BOTÕES --- */
+        /* --- BUTTONS --- */
         .btn {
             font-family: inherit;
             cursor: pointer;
@@ -130,6 +181,17 @@
 
         .btn-primary:hover {
             background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-orange {
+            background-color: var(--orange);
+            color: var(--white);
+            box-shadow: var(--shadow-orange);
+        }
+
+        .btn-orange:hover {
+            background-color: #e05e00;
             transform: translateY(-1px);
         }
 
@@ -220,7 +282,7 @@
 
         .chart-bar { border-radius: 8px 8px 0 0; flex: 1; transition: height 0.3s; }
 
-        /* --- FUNCIONALIDADES --- */
+        /* --- FEATURES --- */
         .features {
             background-color: var(--white);
             padding: 96px 0;
@@ -244,7 +306,7 @@
         .feature-title { font-size: 24px; font-weight: 900; margin: 0; }
         .feature-text { color: var(--slate-500); font-weight: 500; margin: 0; }
 
-        /* --- PLANEADOR --- */
+        /* --- PLANNER --- */
         .planner {
             background-color: var(--blue-900);
             color: var(--white);
@@ -306,7 +368,87 @@
 
         .plan-text { color: #eff6ff; white-space: pre-wrap; font-weight: 500; font-size: 18px; }
 
-        /* --- RODAPÉ --- */
+        /* --- CO-BROWSE SPECIAL SECTION --- */
+        .cobrowse-section {
+            background-color: var(--slate-100);
+            padding: 96px 0;
+            text-align: center;
+            border-bottom: 1px solid var(--slate-200);
+        }
+
+        .cobrowse-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--white);
+            padding: 40px;
+            border-radius: 32px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--slate-200);
+        }
+
+        .cobrowse-container h2 {
+            font-size: 32px;
+            font-weight: 900;
+            margin: 0 0 16px 0;
+            color: var(--slate-900);
+        }
+
+        .cobrowse-container p {
+            font-size: 16px;
+            color: var(--slate-500);
+            margin-bottom: 32px;
+            font-weight: 500;
+        }
+
+        /* Generated Support Code Styling */
+        .code-box-display {
+            background-color: var(--slate-50);
+            border: 2px dashed var(--slate-200);
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 20px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .code-box-display.expired {
+            border-color: #fdba74;
+            background-color: #fff7ed;
+        }
+
+        .code-box-label {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--primary);
+            letter-spacing: 0.05em;
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .code-digits {
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--slate-900);
+            letter-spacing: 4px;
+            margin-bottom: 12px;
+        }
+
+        .code-box-sub {
+            font-size: 13px !important;
+            color: var(--slate-500);
+            margin: 0 !important;
+            line-height: 1.4;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- FOOTER --- */
         footer { background-color: var(--slate-950); color: var(--white); padding: 80px 0; text-align: center; }
         .footer-text { color: var(--slate-600); font-weight: 700; margin: 0; }
 
@@ -317,7 +459,7 @@
 </head>
 <body>
 
-    <!-- Navegação -->
+    <!-- Navigation -->
     <nav>
         <div class="container flex justify-between items-center">
             <a href="#" class="logo">
@@ -326,27 +468,28 @@
             </a>
             <div class="nav-links gap-10 items-center">
                 <a href="#solutions" class="nav-link">Soluções</a>
-                <a href="#planner" class="nav-link">Eco-Planeador</a>
+                <a href="#planner" class="nav-link">Eco-Planner</a>
+                <a href="#cobrowse" class="nav-link">Partilha de Ecrã</a>
                 <a href="#" class="nav-link">Suporte</a>
             </div>
             <button class="btn btn-primary">Aderir Agora</button>
         </div>
     </nav>
 
-    <!-- Secção Hero -->
+    <!-- Hero Section -->
     <header class="hero">
         <div class="container hero-wrapper">
             <div class="hero-content">
                 <div class="badge">
                     <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> Energia Reimaginada
                 </div>
-                <h1>O futuro da energia é mais <span class="text-primary">inteligente.</span></h1>
+                <h1>O futuro da energia é <span class="text-primary">smarter.</span></h1>
                 <p class="hero-description">
-                    Ligue a sua casa à rede do amanhã. Poupe até 25% nas suas faturas com otimização baseada em IA.
+                    Connect your home to the grid of tomorrow. Save up to 25% on bills with AI-driven optimization.
                 </p>
                 <div class="flex gap-4">
-                    <button class="btn btn-primary btn-large">Começar</button>
-                    <button class="btn btn-secondary btn-large">Ver Demo</button>
+                    <button class="btn btn-primary btn-large">Get Started</button>
+                    <a href="#cobrowse" class="btn btn-secondary btn-large">Co-Browse Support</a>
                 </div>
             </div>
             
@@ -355,8 +498,8 @@
                     <div class="usage-card">
                         <div class="flex justify-between items-center">
                             <div>
-                                <h3 style="margin:0; font-weight: 900; font-size: 20px;">Consumo Semanal</h3>
-                                <p style="margin:0; font-size: 12px; color: var(--slate-400);">Análise em tempo real</p>
+                                <h3 style="margin:0; font-weight: 900; font-size: 20px;">Weekly Usage</h3>
+                                <p style="margin:0; font-size: 12px; color: var(--slate-400);">Real-time analytics</p>
                             </div>
                             <i data-lucide="bar-chart-3" style="color: var(--primary);"></i>
                         </div>
@@ -373,7 +516,7 @@
         </div>
     </header>
 
-    <!-- Secção de Funcionalidades -->
+    <!-- Features Section -->
     <section id="solutions" class="features">
         <div class="container">
             <div class="feature-grid">
@@ -381,43 +524,43 @@
                     <div class="icon-box" style="background: var(--primary-light); color: var(--primary);">
                         <i data-lucide="zap"></i>
                     </div>
-                    <h3 class="feature-title">Monitorização em Tempo Real</h3>
-                    <p class="feature-text">Veja exatamente para onde vai cada watt em tempo real com a nossa tecnologia de rede inteligente.</p>
+                    <h3 class="feature-title">Real-time Monitoring</h3>
+                    <p class="feature-text">See exactly where every watt goes in real-time with our smart grid technology.</p>
                 </div>
                 <div class="feature-card">
                     <div class="icon-box" style="background: var(--green-50); color: var(--green-600);">
                         <i data-lucide="leaf"></i>
                     </div>
-                    <h3 class="feature-title">Eco-Otimização</h3>
-                    <p class="feature-text">A IA alterna automaticamente para a produção solar quando a geração atinge o pico.</p>
+                    <h3 class="feature-title">Eco-Optimization</h3>
+                    <p class="feature-text">AI automatically switches to solar production when generation peaks.</p>
                 </div>
                 <div class="feature-card">
                     <div class="icon-box" style="background: var(--purple-50); color: var(--purple-600);">
                         <i data-lucide="bell"></i>
                     </div>
-                    <h3 class="feature-title">Alertas Inteligentes</h3>
-                    <p class="feature-text">Receba notificações antes de picos de procura e poupe significativamente na sua fatura mensal.</p>
+                    <h3 class="feature-title">Smart Alerts</h3>
+                    <p class="feature-text">Get notified before demand surges and save significantly on your monthly bill.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Secção do Eco-Planeador com IA -->
+    <!-- AI Eco-Planner Section -->
     <section id="planner" class="planner">
         <div class="container">
-            <h2>Crie o seu Plano de <span style="color: var(--blue-400);">Energia com IA</span></h2>
-            <p>Descreva a configuração da sua casa e a nossa IA irá gerar uma estratégia de eficiência de alta tecnologia para si.</p>
+            <h2>Draft Your Custom <span style="color: var(--blue-400);">AI Energy Plan</span></h2>
+            <p>Describe your home setup, and our AI will generate a high-tech efficiency strategy for you.</p>
             
             <div class="planner-card">
                 <div class="planner-form">
-                    <input id="plan-input" type="text" placeholder="ex: 'Casa T3, carro elétrico, uso intensivo de AC'...">
+                    <input id="plan-input" type="text" placeholder="e.g., '3 bedroom house, electric car'...">
                     <button id="generate-plan-btn" class="btn btn-primary" style="padding: 16px 32px;">
-                        <i data-lucide="zap"></i><span>Gerar</span>
+                        <i data-lucide="zap"></i><span>Generate</span>
                     </button>
                 </div>
                 <div id="plan-result" class="plan-result hidden">
                     <div class="plan-header">
-                        <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Relatório de Estratégia
+                        <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Strategy Report
                     </div>
                     <div id="plan-text" class="plan-text"></div>
                 </div>
@@ -425,17 +568,34 @@
         </div>
     </section>
 
+    <!-- Co-Browse Capability Demo Section -->
+    <section id="cobrowse" class="cobrowse-section">
+        <div class="container">
+            <div class="cobrowse-container">
+                <i data-lucide="monitor-play" style="width: 48px; height: 48px; color: var(--orange); margin-bottom: 16px;"></i>
+                <h2>Suporte Remoto Co-Browse</h2>
+                <p>Precisa de assistência técnica na sua área de cliente? Gere um código seguro de partilha de ecrã para ligar instantaneamente a um dos nossos técnicos dedicados.</p>
+                
+                <div id="support-code"></div>
+                
+                <button class="btn btn-orange btn-large" id="generate-button" onclick="generateSupportCode();" style="margin-top: 16px; width: 100%; justify-content: center;">
+                    <i data-lucide="phone-call"></i> Gerar Código de Suporte
+                </button>
+            </div>
+        </div>
+    </section>
+
     <footer>
         <div class="container">
-            <p class="footer-text">&copy; 2024 Voltora Energy Systems Inc. Todos os direitos reservados.</p>
+            <p class="footer-text">&copy; 2024 Voltora Energy Systems Inc. All rights reserved.</p>
         </div>
     </footer>
 
     <script>
-        // Inicializar Ícones
+        // Initialize Lucide Icons
         if (typeof lucide !== 'undefined') lucide.createIcons();
 
-        // Configuração da API Gemini
+        // Gemini API Configuration
         const apiKey = ""; 
         const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
 
@@ -450,13 +610,13 @@
                     })
                 });
                 const data = await response.json();
-                return data.candidates?.[0]?.content?.parts?.[0]?.text || "Relatório de estratégia indisponível de momento.";
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "Strategy report currently unavailable.";
             } catch (error) {
                 if (retries > 0) {
                     await new Promise(r => setTimeout(r, delay));
                     return callGemini(prompt, systemInstruction, retries - 1, delay * 2);
                 }
-                return "Falha na ligação à IA. ⚡";
+                return "AI connection failed. ⚡";
             }
         }
 
@@ -468,14 +628,14 @@
             const description = document.getElementById('plan-input').value;
             if (!description.trim()) return;
             
-            planBtn.innerHTML = "A pensar...";
+            planBtn.innerHTML = "Thinking...";
             planBtn.disabled = true;
             
-            const result = await callGemini(description, "És um motor de otimização de energia especializado para a Voltora em Portugal. Fornece um plano de poupança de energia estruturado e de alta tecnologia. Responde em Português de Portugal.");
+            const result = await callGemini(description, "You are a specialized energy optimization engine for Voltora. Provide a structured, high-tech energy saving plan.");
             
             planText.textContent = result;
             planResult.classList.remove('hidden');
-            planBtn.innerHTML = '<i data-lucide="zap"></i><span>Gerar</span>';
+            planBtn.innerHTML = '<i data-lucide="zap"></i><span>Generate</span>';
             planBtn.disabled = false;
             lucide.createIcons();
             

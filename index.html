@@ -91,57 +91,77 @@
 
           // Renderiza cada página do PDF para um canvas DOM (capturável pelo Cobrowse em iOS e Android)
           async function renderPdfToCanvas(url) {
-              const container = document.getElementById('pdf-canvas-container');
-              container.innerHTML = '<p style="text-align:center; padding:40px; color: var(--slate-500);">A carregar fatura...</p>';
+      const container = document.getElementById('pdf-canvas-container');
+      container.innerHTML = '<p style="text-align:center; padding:40px; color: var(--slate-500);">A carregar fatura...</p>';
 
-              try {
-                  pdfjsLib.GlobalWorkerOptions.workerSrc =
-                      'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.worker.min.js';
+      try {
+          pdfjsLib.GlobalWorkerOptions.workerSrc =
+              'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.worker.min.js';
 
-                  const pdf = await pdfjsLib.getDocument(url).promise;
-                  container.innerHTML = '';
+          const pdf = await pdfjsLib.getDocument(url).promise;
+          container.innerHTML = '';
   
-                  // iOS Safari tem limite máximo de área de canvas (~16M pixels).
-                  // Acima disto o canvas renderiza completamente em branco.
-                  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                  const MAX_CANVAS_PIXELS = isIOS ? 5000000 : 16000000;
+          // Limite de área de canvas no iOS (~16M pixels = 4096x4096)
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+          const MAX_CANVAS_PIXELS = isIOS ? 16777216 : 33554432;
 
-                  for (let i = 1; i <= pdf.numPages; i++) {
-                      const page = await pdf.getPage(i);
+          for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+  
+              // Escala de display (tamanho visual da página)
+              const containerWidth = container.clientWidth - 32;
+              const unscaledViewport = page.getViewport({ scale: 1 });
+              const displayScale = Math.min(2, containerWidth / unscaledViewport.width);
+              const viewport = page.getViewport({ scale: displayScale });
 
-                      const containerWidth = container.clientWidth - 32;
-                      const unscaledViewport = page.getViewport({ scale: 1 });
-                      let scale = Math.min(2, containerWidth / unscaledViewport.width);
+              // Densidade física (retina) — torna o canvas nítido em vez de desfocado
+              let outputScale = window.devicePixelRatio || 1;
 
-                      let viewport = page.getViewport({ scale });
-                      const area = viewport.width * viewport.height;
-                      if (area > MAX_CANVAS_PIXELS) {
-                          scale = scale * Math.sqrt(MAX_CANVAS_PIXELS / area);
-                          viewport = page.getViewport({ scale });
-                      }
-
-                      const canvas = document.createElement('canvas');
-                      canvas.width = Math.floor(viewport.width);
-                      canvas.height = Math.floor(viewport.height);
-                      canvas.style.cssText = 'display:block;margin:0 auto 16px;max-width:100%;height:auto;box-shadow:var(--shadow-lg);border-radius:8px;background:white;';
-                      container.appendChild(canvas);
-
-                      await page.render({
-                          canvasContext: canvas.getContext('2d'),
-                          viewport: viewport
-                      }).promise;
-                  }
-              } catch (err) {
-                  console.error('Falha ao carregar PDF:', err);
-                  container.innerHTML = `
-                      <div style="padding:40px; text-align:center; color: var(--slate-600);">
-                          <h4 style="font-weight:800; font-size:16px; margin-bottom:8px;">Não foi possível carregar o PDF</h4>
-                          <p style="margin-bottom:16px; font-size:13px;">Verifique se o ficheiro está disponível no servidor.</p>
-                          <a href="${url}" download class="btn btn-primary" style="display:inline-flex;">Descarregar Fatura PDF</a>
-                      </div>
-                  `;
+              // Se o backing store exceder o limite do iOS, reduz o outputScale para caber
+              const desiredArea = viewport.width * viewport.height * outputScale * outputScale;
+              if (desiredArea > MAX_CANVAS_PIXELS) {
+                  outputScale = outputScale * Math.sqrt(MAX_CANVAS_PIXELS / desiredArea);
               }
+
+              const canvas = document.createElement('canvas');
+              // Backing store em alta resolução
+              canvas.width = Math.floor(viewport.width * outputScale);
+              canvas.height = Math.floor(viewport.height * outputScale);
+              // Tamanho de display continua igual
+              canvas.style.cssText = `
+                  display:block;
+                  margin:0 auto 16px;
+                  width:${Math.floor(viewport.width)}px;
+                  height:${Math.floor(viewport.height)}px;
+                  max-width:100%;
+                  box-shadow:var(--shadow-lg);
+                  border-radius:8px;
+                  background:white;
+              `;
+              container.appendChild(canvas);
+
+              // Transformação escala o desenho para o backing store de alta resolução
+              const transform = outputScale !== 1
+                  ? [outputScale, 0, 0, outputScale, 0, 0]
+                  : null;
+
+              await page.render({
+                  canvasContext: canvas.getContext('2d'),
+                  transform: transform,
+                  viewport: viewport
+              }).promise;
           }
+      } catch (err) {
+          console.error('Falha ao carregar PDF:', err);
+          container.innerHTML = `
+              <div style="padding:40px; text-align:center; color: var(--slate-600);">
+                  <h4 style="font-weight:800; font-size:16px; margin-bottom:8px;">Não foi possível carregar o PDF</h4>
+                  <a href="${url}" download class="btn btn-primary" style="display:inline-flex;">Descarregar Fatura PDF</a>
+              </div>
+          `;
+      }
+  }
+
       </script>
 
       <style>

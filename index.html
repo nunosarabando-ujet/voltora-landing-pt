@@ -22,6 +22,14 @@
         CobrowseIO.api = urlParams.get('api') || 'https://api.cobrowse.io';
         
         CobrowseIO.client().then(function(){
+                        // links in your website ending with the .pdf extension
+CobrowseIO.pdfLinks = ['*.pdf']
+
+// links to the example.com domain with the path starting with /assets/pdfs/
+CobrowseIO.pdfLinks = ['https://example.com/assets/pdfs/*']
+
+// links to any domain with /pdfs/ as part of the path and the .pdf extension
+CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
             CobrowseIO.start({allowIFrameStart:true});
         });
 

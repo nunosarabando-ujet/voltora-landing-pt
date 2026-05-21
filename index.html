@@ -1,1210 +1,611 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voltora | O Futuro da Energia Inteligente</title>
-    
-    <!-- Lucide para ícones, estilos CSS totalmente independentes -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- SCRIPT DE INTEGRAÇÃO DO COBROWSE.IO -->
-    <script type="text/javascript">
-        var urlParams = new URLSearchParams(window.location.search);
+  <html lang="pt-PT">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Voltora | O Futuro da Energia Inteligente</title>
 
-        (function(w,t,c,p,s,e){p=new Promise(function(r){w[c]={client:function(){if(!s){
-        s=document.createElement(t);s.src='https://js.cobrowse.io/CobrowseIO.js';s.async=1;
-        e=document.getElementsByTagName(t)[0];e.parentNode.insertBefore(s,e);s.onload=function()
-        {r(w[c]);};}return p;}};});})(window,'script','CobrowseIO');
+      <script src="https://unpkg.com/lucide@latest"></script>
 
-        // Configura dinamicamente a licença e URL da API ou assume a chave demo da Waystar
-        CobrowseIO.license = urlParams.get('license') || '0Blc4UGxQHHDNA'; 
-        CobrowseIO.api = urlParams.get('api') || 'https://api.cobrowse.io';
-        
-        // CONFIGURAÇÕES DE LINKS PDF PARA O CO-BROWSE (Suporta múltiplos padrões em simultâneo)
-        
-        // links in your website ending with the .pdf extension
-        // CobrowseIO.pdfLinks = ['*.pdf']
+      <script type="text/javascript">
+          var urlParams = new URLSearchParams(window.location.search);
 
-        // links to the example.com domain with the path starting with /assets/pdfs/
-        // CobrowseIO.pdfLinks = ['https://example.com/assets/pdfs/*']
+          (function(w,t,c,p,s,e){p=new Promise(function(r){w[c]={client:function(){if(!s){
+          s=document.createElement(t);s.src='https://js.cobrowse.io/CobrowseIO.js';s.async=1;
+          e=document.getElementsByTagName(t)[0];e.parentNode.insertBefore(s,e);s.onload=function()
+          {r(w[c]);};}return p;}};});})(window,'script','CobrowseIO');
 
-        // links to any domain with /pdfs/ as part of the path and the .pdf extension
-        // CobrowseIO.pdfLinks = ['*/pdfs/*.pdf']
-        
-        // Ativação consolidada de todos os padrões para o ambiente de demonstração
-        CobrowseIO.pdfLinks = ['*.pdf', 'https://nunosarabando-ujet.github.io/voltora-landing-pt/*', '*/pdfs/*.pdf'];
+          CobrowseIO.license = urlParams.get('license') || '0Blc4UGxQHHDNA';
+          CobrowseIO.api = urlParams.get('api') || 'https://api.cobrowse.io';
 
-        CobrowseIO.client().then(function(){
-            CobrowseIO.start({allowIFrameStart:true});
-        });
+          // Cobrowse intercepta cliques nestes links e renderiza o PDF
+          // num visualizador interno capturável pelo agente (iOS + Android).
+          CobrowseIO.pdfLinks = ['*.pdf', '*/pdfs/*.pdf'];
 
-        function generateSupportCode() {
-          CobrowseIO.client().then(function () {
-            CobrowseIO.createSessionCode().then(function (code) {
-              document.getElementById('generate-button').style.display = 'none';
-              
-              // Caixa de exibição do código formatado em conformidade com o tema
-              document.getElementById('support-code').innerHTML = `
-                <div class="code-box-display">
-                    <p class="code-box-label"><i class="lucide-sparkles"></i> Código de Sessão Ativo</p>
-                    <div class="code-digits">${code.substr(0, 3)}-${code.substr(3, 6)}</div>
-                    <p class="code-box-sub">Partilhe este código de 6 dígitos com o agente da Voltora para iniciar a assistência remota.</p>
-                </div>
-              `;
-              
-              CobrowseIO.currentSession.on('ended', function () {
-                onExpire();
-              })
-            });
+          CobrowseIO.client().then(function(){
+              CobrowseIO.start({allowIFrameStart:true});
           });
-        }
 
-        function onExpire() {
-          console.log('Código de suporte expirado.');
-          document.getElementById('support-code').innerHTML = `
-            <div class="code-box-display expired">
-                <p class="code-box-sub" style="color: var(--orange);">O código de suporte expirou ou a sessão terminou.</p>
-            </div>
-          `;
-          document.getElementById('generate-button').style.display = 'inline-flex';
-        }
-
-        // Funções de Controlo do Modal de Faturação
-        function openInvoice() {
-            document.getElementById('invoice-modal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Desativa scroll de fundo
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-
-        // Fecha o Modal da Fatura
-        function closeInvoice() {
-            document.getElementById('invoice-modal').classList.add('hidden');
-            document.body.style.overflow = 'auto'; // Reativa scroll de fundo
-        }
-
-        // Alternador de Abas dentro do Modal da Fatura
-        function switchInvoiceTab(tabName) {
-            const htmlTab = document.getElementById('tab-html-btn');
-            const pdfTab = document.getElementById('tab-pdf-btn');
-            const htmlContent = document.getElementById('invoice-html-content');
-            const pdfContent = document.getElementById('invoice-pdf-content');
-
-            if (tabName === 'html') {
-                htmlTab.classList.add('active-tab');
-                pdfTab.classList.remove('active-tab');
-                htmlContent.classList.remove('hidden');
-                pdfContent.classList.add('hidden');
-            } else {
-                pdfTab.classList.add('active-tab');
-                htmlTab.classList.remove('active-tab');
-                htmlContent.classList.add('hidden');
-                pdfContent.classList.remove('hidden');
-                
-                // Resolve e renderiza o visualizador de PDF adaptado para dispositivos móveis
-                setupMobilePdfViewer();
-            }
-        }
-
-        // Visualizador Inteligente de PDFs para Dispositivos Móveis (Android/iOS)
-        function setupMobilePdfViewer() {
-            const container = document.getElementById('invoice-pdf-content');
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
-            const pdfRelativePath = "Fatura%20Voltora%20Demo.pdf";
-            const pdfAbsoluteUrl = new URL(pdfRelativePath, window.location.href).href;
-            
-            const isLocal = window.location.hostname === 'localhost' || 
-                            window.location.hostname === '127.0.0.1' || 
-                            window.location.protocol === 'file:';
-
-            if (isMobile && !isLocal) {
-                // Alojado online (ex: GitHub Pages) -> Renderiza o PDF inline usando o gview do Google
-                container.innerHTML = `
-                    <div class="pdf-embed-container">
-                        <iframe src="https://docs.google.com/gview?url=${encodeURIComponent(pdfAbsoluteUrl)}&embedded=true" 
-                                width="100%" height="100%" style="border: none;">
-                        </iframe>
-                    </div>
+          function generateSupportCode() {
+            CobrowseIO.client().then(function () {
+              CobrowseIO.createSessionCode().then(function (code) {
+                document.getElementById('generate-button').style.display = 'none';
+                document.getElementById('support-code').innerHTML = `
+                  <div class="code-box-display">
+                      <p class="code-box-label"><i class="lucide-sparkles"></i> Código de Sessão Ativo</p>
+                      <div class="code-digits">${code.substr(0, 3)}-${code.substr(3, 6)}</div>
+                      <p class="code-box-sub">Partilhe este código de 6 dígitos com o agente da Voltora para iniciar a assistência remota.</p>
+                  </div>
                 `;
-            } else if (isMobile && isLocal) {
-                // Testes locais em dispositivos móveis -> Avisa sobre limitações de rede local de forma elegante
-                container.innerHTML = `
-                    <div class="pdf-embed-container" style="background-color: var(--slate-50); display: flex; align-items: center; justify-content: center;">
-                        <div class="pdf-fallback-message">
-                            <i data-lucide="alert-triangle" style="width: 48px; height: 48px; color: var(--orange); margin: 0 auto 16px;"></i>
-                            <h4 style="font-weight: 800; font-size: 16px; margin-bottom: 8px;">Pré-visualização Local Indisponível em Dispositivos Móveis</h4>
-                            <p style="margin-bottom: 16px; font-size: 13px;">O visualizador de PDF móvel requer que o site esteja alojado online (ex: GitHub Pages). Pode descarregar a fatura original para visualizar no seu dispositivo:</p>
-                            <a href="${pdfRelativePath}" download class="btn btn-primary" style="margin: 0 auto; display: inline-flex;">
-                                <i data-lucide="download"></i> Descarregar Fatura PDF
-                            </a>
-                        </div>
-                    </div>
-                `;
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-            } else {
-                // Vista Desktop padrão -> Elevada fidelidade com elemento object nativo
-                container.innerHTML = `
-                    <div class="pdf-embed-container">
-                        <object data="${pdfRelativePath}" type="application/pdf" width="100%" height="100%">
-                            <iframe src="${pdfRelativePath}" width="100%" height="100%" style="border: none;">
-                                <div class="pdf-fallback-message">
-                                    <i data-lucide="alert-triangle" style="width: 48px; height: 48px; color: var(--orange); margin: 0 auto 16px;"></i>
-                                    <h4 style="font-weight: 800; font-size: 16px; margin-bottom: 8px;">O seu navegador não suporta a visualização direta de PDFs</h4>
-                                    <p style="margin-bottom: 16px;">Pode descarregar o documento original utilizando o link abaixo para visualizar a fatura completa:</p>
-                                    <a href="${pdfRelativePath}" download class="btn btn-primary" style="margin: 0 auto; display: inline-flex;">
-                                        <i data-lucide="download"></i> Descarregar Fatura PDF
-                                    </a>
-                                </div>
-                            </iframe>
-                        </object>
-                    </div>
-                `;
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-            }
-        }
-    </script>
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-        
-        /* --- BRAND DESIGN TOKENS --- */
-        :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --primary-light: #eff6ff;
-            --slate-50: #f8fafc;
-            --slate-100: #f1f5f9;
-            --slate-200: #e2e8f0;
-            --slate-300: #cbd5e1;
-            --slate-400: #94a3b8;
-            --slate-500: #64748b;
-            --slate-600: #475569;
-            --slate-900: #0f172a;
-            --slate-950: #020617;
-            --white: #ffffff;
-            --green-50: #f0fdf4;
-            --green-600: #16a34a;
-            --purple-50: #faf5ff;
-            --purple-600: #9333ea;
-            --blue-900: #1e3a8a;
-            --blue-400: #60a5fa;
-            --orange: #f76901;
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            --shadow-blue: 0 10px 15px -3px rgba(37, 99, 235, 0.2);
-            --shadow-orange: 0 10px 15px -3px rgba(247, 105, 1, 0.3);
-        }
-
-        /* --- RESET & BASE --- */
-        * { box-sizing: border-box; }
-        body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--slate-50);
-            color: var(--slate-900);
-            line-height: 1.5;
-            scroll-behavior: smooth;
-        }
-
-        /* --- LAYOUT COMPONENTS --- */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        .flex { display: flex; }
-        .items-center { align-items: center; }
-        .justify-between { justify-content: space-between; }
-        .flex-col { flex-direction: column; }
-        .gap-2 { gap: 8px; }
-        .gap-4 { gap: 16px; }
-        .gap-10 { gap: 40px; }
-        .gap-16 { gap: 64px; }
-
-        /* --- NAVIGATION --- */
-        nav {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--slate-100);
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            padding: 16px 0;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 900;
-            color: var(--primary);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .nav-links {
-            display: none; /* Mobile hidden by default */
-        }
-
-        @media (min-width: 768px) {
-            .nav-links { display: flex; }
-            .hero-wrapper { flex-direction: row !important; }
-            .feature-grid { grid-template-columns: repeat(3, 1fr) !important; }
-            .planner-form { flex-direction: row !important; }
-        }
-
-        .nav-link {
-            color: var(--slate-500);
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 14px;
-            transition: color 0.2s;
-        }
-
-        .nav-link:hover { color: var(--primary); }
-
-        /* --- BUTTONS --- */
-        .btn {
-            font-family: inherit;
-            cursor: pointer;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 14px;
-            padding: 10px 24px;
-            border: none;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            color: var(--white);
-            box-shadow: var(--shadow-blue);
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-1px);
-        }
-
-        .btn-orange {
-            background-color: var(--orange);
-            color: var(--white);
-            box-shadow: var(--shadow-orange);
-        }
-
-        .btn-orange:hover {
-            background-color: #e05e00;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background-color: var(--white);
-            color: var(--slate-700);
-            border: 2px solid var(--slate-200);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--slate-50);
-        }
-
-        .btn-large {
-            padding: 16px 32px;
-            font-size: 18px;
-            border-radius: 16px;
-        }
-
-        /* --- HERO --- */
-        .hero { padding: 96px 0; }
-        .hero-wrapper { display: flex; flex-direction: column; align-items: center; gap: 64px; }
-        .hero-content { flex: 1; }
-        .hero-visual { flex: 1; position: relative; width: 100%; }
-
-        .badge {
-            background-color: var(--primary-light);
-            color: var(--primary);
-            padding: 8px 16px;
-            border-radius: 9999px;
-            font-size: 12px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 32px;
-        }
-
-        h1 {
-            font-size: clamp(40px, 8vw, 72px);
-            font-weight: 900;
-            line-height: 1.1;
-            letter-spacing: -0.04em;
-            margin: 0 0 32px 0;
-        }
-
-        .text-primary { color: var(--primary); }
-
-        .hero-description {
-            font-size: 20px;
-            color: var(--slate-500);
-            font-weight: 500;
-            max-width: 512px;
-            margin-bottom: 32px;
-        }
-
-        .visual-container {
-            background-color: #dbeafe;
-            border-radius: 48px;
-            aspect-ratio: 1 / 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 48px;
-            position: relative;
-        }
-
-        .usage-card {
-            background-color: var(--white);
-            padding: 32px;
-            border-radius: 24px;
-            box-shadow: var(--shadow-xl);
-            width: 100%;
-            transform: rotate(3deg);
-            position: relative;
-            z-index: 10;
-        }
-
-        .usage-chart {
-            display: flex;
-            align-items: flex-end;
-            gap: 12px;
-            height: 192px;
-            margin-top: 32px;
-        }
-
-        .chart-bar { border-radius: 8px 8px 0 0; flex: 1; transition: height 0.3s; }
-
-        /* --- FEATURES --- */
-        .features {
-            background-color: var(--white);
-            padding: 96px 0;
-            border-top: 1px solid var(--slate-100);
-            border-bottom: 1px solid var(--slate-100);
-        }
-
-        .feature-grid { display: grid; grid-template-columns: 1fr; gap: 48px; }
-
-        .feature-card { display: flex; flex-direction: column; gap: 16px; }
-
-        .icon-box {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .feature-title { font-size: 24px; font-weight: 900; margin: 0; }
-        .feature-text { color: var(--slate-500); font-weight: 500; margin: 0; }
-
-        /* --- PLANNER --- */
-        .planner {
-            background-color: var(--blue-900);
-            color: var(--white);
-            padding: 96px 0;
-            position: relative;
-            overflow: hidden;
-            text-align: center;
-        }
-
-        .planner h2 { font-size: 48px; font-weight: 900; margin-bottom: 24px; }
-        .planner p { color: #dbeafe; font-size: 18px; margin-bottom: 48px; opacity: 0.8; }
-
-        .planner-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            padding: 32px;
-            border-radius: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: left;
-            box-shadow: var(--shadow-xl);
-        }
-
-        .planner-form { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
-
-        input[type="text"] {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 16px 24px;
-            color: var(--white);
-            font-family: inherit;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input[type="text"]:focus { border-color: var(--blue-400); }
-
-        .plan-result {
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .plan-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--blue-400);
-            font-weight: 900;
-            text-transform: uppercase;
-            font-size: 12px;
-            letter-spacing: 0.1em;
-            margin-bottom: 16px;
-        }
-
-        .plan-text { color: #eff6ff; white-space: pre-wrap; font-weight: 500; font-size: 18px; }
-
-        /* --- CO-BROWSE SPECIAL SECTION --- */
-        .cobrowse-section {
-            background-color: var(--slate-100);
-            padding: 96px 0;
-            text-align: center;
-            border-bottom: 1px solid var(--slate-200);
-        }
-
-        .cobrowse-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: var(--white);
-            padding: 40px;
-            border-radius: 32px;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--slate-200);
-        }
-
-        .cobrowse-container h2 {
-            font-size: 32px;
-            font-weight: 900;
-            margin: 0 0 16px 0;
-            color: var(--slate-900);
-        }
-
-        .cobrowse-container p {
-            font-size: 16px;
-            color: var(--slate-500);
-            margin-bottom: 32px;
-            font-weight: 500;
-        }
-
-        /* Generated Support Code Styling */
-        .code-box-display {
-            background-color: var(--slate-50);
-            border: 2px dashed var(--slate-200);
-            border-radius: 20px;
-            padding: 24px;
-            margin-top: 20px;
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        .code-box-display.expired {
-            border-color: #fdba74;
-            background-color: #fff7ed;
-        }
-
-        .code-box-label {
-            font-size: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: var(--primary);
-            letter-spacing: 0.05em;
-            margin: 0 0 12px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .code-digits {
-            font-size: 42px;
-            font-weight: 900;
-            color: var(--slate-900);
-            letter-spacing: 4px;
-            margin-bottom: 12px;
-        }
-
-        .code-box-sub {
-            font-size: 13px !important;
-            color: var(--slate-500);
-            margin: 0 !important;
-            line-height: 1.4;
-        }
-
-        /* --- DIGITAL BILL MODAL STYLING --- */
-        .modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .invoice-card {
-            background-color: var(--white);
-            width: 100%;
-            max-width: 800px;
-            max-height: 90vh;
-            border-radius: 24px;
-            box-shadow: var(--shadow-xl);
-            overflow: hidden;
-            border: 1px solid var(--slate-200);
-            display: flex;
-            flex-direction: column;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .invoice-card-header {
-            padding: 20px 32px;
-            border-bottom: 1px solid var(--slate-100);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--slate-50);
-            position: sticky;
-            top: 0;
-            z-index: 20;
-        }
-
-        .invoice-card-header h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--slate-900);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .close-modal-btn {
-            background: var(--white);
-            border: 1px solid var(--slate-200);
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: var(--slate-500);
-        }
-
-        .close-modal-btn:hover {
-            background-color: var(--slate-100);
-            color: var(--slate-900);
-        }
-
-        /* Invoice Viewer Tab Layout Styling */
-        .invoice-tabs {
-            display: flex;
-            background-color: var(--slate-100);
-            padding: 4px;
-            border-radius: 12px;
-            margin: 20px 32px 0 32px;
-            gap: 4px;
-        }
-
-        .invoice-tab-btn {
-            flex: 1;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--slate-600);
-            border: none;
-            background: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .invoice-tab-btn.active-tab {
-            background-color: var(--white);
-            color: var(--primary);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .invoice-scrollable-body {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .invoice-paper {
-            padding: 40px;
-            color: var(--slate-900);
-            font-size: 13px;
-        }
-
-        .invoice-brand-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 24px;
-            margin-bottom: 24px;
-        }
-
-        .invoice-company-details {
-            text-align: right;
-            font-size: 11px;
-            color: var(--slate-500);
-            line-height: 1.4;
-        }
-
-        .invoice-grid-meta {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 32px;
-            margin-bottom: 32px;
-        }
-
-        .meta-box {
-            background-color: var(--slate-50);
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid var(--slate-100);
-        }
-
-        .meta-box-title {
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: var(--primary);
-            margin: 0 0 10px 0;
-            letter-spacing: 0.05em;
-        }
-
-        .meta-box-content p {
-            margin: 4px 0;
-            font-weight: 500;
-            color: var(--slate-700);
-        }
-
-        .meta-box-content strong {
-            color: var(--slate-900);
-        }
-
-        .invoice-amount-summary {
-            background-color: var(--primary-light);
-            border: 1.5px solid var(--primary);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-        }
-
-        .invoice-amount-text {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .invoice-amount-value {
-            font-size: 32px;
-            font-weight: 900;
-            color: var(--primary);
-        }
-
-        .invoice-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 32px;
-        }
-
-        .invoice-table th {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 2px solid var(--slate-200);
-            font-weight: 800;
-            color: var(--slate-500);
-            font-size: 11px;
-            text-transform: uppercase;
-        }
-
-        .invoice-table td {
-            padding: 12px;
-            border-bottom: 1px solid var(--slate-100);
-            color: var(--slate-700);
-            font-weight: 500;
-        }
-
-        .invoice-table tr.total-row td {
-            border-top: 2px solid var(--slate-200);
-            font-weight: 800;
-            color: var(--slate-900);
-        }
-
-        .multibanco-container {
-            background-color: #fef3c7;
-            border: 1.5px solid #d97706;
-            border-radius: 16px;
-            padding: 24px;
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-
-        .mb-logo-box {
-            background-color: #0369a1;
-            color: var(--white);
-            font-weight: 900;
-            font-style: italic;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 18px;
-            text-align: center;
-            width: 60px;
-            letter-spacing: -1px;
-        }
-
-        .mb-details {
-            flex-grow: 1;
-            font-size: 12px;
-        }
-
-        .mb-grid {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 4px 16px;
-            margin-top: 8px;
-        }
-
-        .mb-grid strong {
-            color: var(--slate-900);
-        }
-
-        .invoice-test-banner {
-            text-align: center;
-            font-size: 10px;
-            color: var(--slate-400);
-            font-weight: 700;
-            text-transform: uppercase;
-            border-top: 1px solid var(--slate-100);
-            padding-top: 16px;
-            margin-top: 24px;
-        }
-
-        /* Contentores Específicos para Embeber PDF */
-        .pdf-embed-container {
-            width: 100%;
-            height: 600px;
-            border-radius: 0 0 24px 24px;
-            overflow: hidden;
-        }
-        
-        .pdf-fallback-message {
-            padding: 60px 40px;
-            text-align: center;
-            color: var(--slate-600);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* --- FOOTER --- */
-        footer { background-color: var(--slate-950); color: var(--white); padding: 80px 0; text-align: center; }
-        .footer-text { color: var(--slate-600); font-weight: 700; margin: 0; }
-
-        /* --- UTILS --- */
-        .hidden { display: none; }
-        .fill-current { fill: currentColor; }
-    </style>
-</head>
-<body>
-
-    <!-- Navegação -->
-    <nav>
-        <div class="container flex justify-between items-center">
-            <a href="#" class="logo">
-                <i data-lucide="zap" class="fill-current"></i>
-                <span>Voltora</span>
-            </a>
-            <div class="nav-links gap-10 items-center">
-                <a href="#solutions" class="nav-link">Soluções</a>
-                <a href="#planner" class="nav-link">Eco-Planner</a>
-                <a href="#cobrowse" class="nav-link">Partilha de Ecrã</a>
-                <a href="javascript:void(0)" onclick="openInvoice()" class="nav-link" style="color: var(--primary); font-weight: 800; display: flex; align-items: center; gap: 4px;">
-                    <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> Minha Fatura
-                </a>
-                <a href="#" class="nav-link">Suporte</a>
-            </div>
-            <button class="btn btn-primary" onclick="openInvoice()">Ver Fatura</button>
-        </div>
-    </nav>
-
-    <!-- Secção Hero -->
-    <header class="hero">
-        <div class="container hero-wrapper">
-            <div class="hero-content">
-                <div class="badge">
-                    <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> Energia Reimaginada
-                </div>
-                <h1>O futuro da energia é mais <span class="text-primary">inteligente.</span></h1>
-                <p class="hero-description">
-                    Ligue a sua casa à rede do amanhã. Poupe até 25% nas faturas com a nossa otimização inteligente por IA.
-                </p>
-                <div class="flex gap-4">
-                    <button class="btn btn-primary btn-large" onclick="openInvoice()"><i data-lucide="file-text"></i> Abrir Fatura (76,98 €)</button>
-                    <a href="#cobrowse" class="btn btn-secondary btn-large">Suporte Co-Browse</a>
-                </div>
-            </div>
-            
-            <div class="hero-visual">
-                <div class="visual-container">
-                    <div class="usage-card">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 style="margin:0; font-weight: 900; font-size: 20px;">Consumo Semanal</h3>
-                                <p style="margin:0; font-size: 12px; color: var(--slate-400);">Análise em tempo real</p>
-                            </div>
-                            <i data-lucide="bar-chart-3" style="color: var(--primary);"></i>
-                        </div>
-                        <div class="usage-chart">
-                            <div class="chart-bar" style="height: 40%; background: #dbeafe;"></div>
-                            <div class="chart-bar" style="height: 65%; background: #bfdbfe;"></div>
-                            <div class="chart-bar" style="height: 90%; background: var(--primary); box-shadow: var(--shadow-blue);"></div>
-                            <div class="chart-bar" style="height: 85%; background: #3b82f6;"></div>
-                            <div class="chart-bar" style="height: 50%; background: #bfdbfe;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Secção de Funcionalidades -->
-    <section id="solutions" class="features">
-        <div class="container">
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="icon-box" style="background: var(--primary-light); color: var(--primary);">
-                        <i data-lucide="zap"></i>
-                    </div>
-                    <h3 class="feature-title">Monitorização em Tempo Real</h3>
-                    <p class="feature-text">Veja exatamente para onde vai cada watt em tempo real com a nossa tecnologia de rede inteligente.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="icon-box" style="background: var(--green-50); color: var(--green-600);">
-                        <i data-lucide="leaf"></i>
-                    </div>
-                    <h3 class="feature-title">Eco-Otimização</h3>
-                    <p class="feature-text">A IA muda automaticamente para a produção solar quando a geração atinge o pico.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="icon-box" style="background: var(--purple-50); color: var(--purple-600);">
-                        <i data-lucide="bell"></i>
-                    </div>
-                    <h3 class="feature-title">Alertas Inteligentes</h3>
-                    <p class="feature-text">Receba notificações antes dos picos de procura e poupe significativamente na sua fatura mensal.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Secção Eco-Planner -->
-    <section id="planner" class="planner">
-        <div class="container">
-            <h2>Crie o seu Plano de <span style="color: var(--blue-400);">Energia com IA</span></h2>
-            <p>Descreva a configuração da sua casa e a nossa IA irá gerar uma estratégia de eficiência de alta tecnologia para si.</p>
-            
-            <div class="planner-card">
-                <div class="planner-form">
-                    <input id="plan-input" type="text" placeholder="ex: 'Casa T3, carro elétrico'...">
-                    <button id="generate-plan-btn" class="btn btn-primary" style="padding: 16px 32px;">
-                        <i data-lucide="zap"></i><span>Gerar Plano</span>
-                    </button>
-                </div>
-                <div id="plan-result" class="plan-result hidden">
-                    <div class="plan-header">
-                        <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Relatório de Estratégia
-                    </div>
-                    <div id="plan-text" class="plan-text"></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Secção Co-Browse -->
-    <section id="cobrowse" class="cobrowse-section">
-        <div class="container">
-            <div class="cobrowse-container">
-                <i data-lucide="monitor-play" style="width: 48px; height: 48px; color: var(--orange); margin-bottom: 16px;"></i>
-                <h2>Suporte Remoto Co-Browse</h2>
-                <p>Precisa de assistência técnica na sua área de cliente? Gere um código seguro de partilha de ecrã para ligar instantaneamente a um dos nossos técnicos dedicados.</p>
-                
-                <div id="support-code"></div>
-                
-                <button class="btn btn-orange btn-large" id="generate-button" onclick="generateSupportCode();" style="margin-top: 16px; width: 100%; justify-content: center;">
-                    <i data-lucide="phone-call"></i> Gerar Código de Suporte
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <!-- MODAL INTERATIVO DA FATURA DIGITAL -->
-    <div id="invoice-modal" class="modal-backdrop hidden">
-        <div class="invoice-card">
-            <div class="invoice-card-header">
-                <h3><i data-lucide="file-text" style="color: var(--primary);"></i> Fatura do Cliente — Senhor Costa</h3>
-                <button class="close-modal-btn" onclick="closeInvoice()">
-                    <i data-lucide="x"></i>
-                </button>
-            </div>
-
-            <!-- Alternador de Abas -->
-            <div class="invoice-tabs">
-                <button id="tab-html-btn" class="invoice-tab-btn active-tab" onclick="switchInvoiceTab('html')">
-                    <i data-lucide="laptop" style="width: 16px; height: 16px;"></i> Fatura Digital (HTML)
-                </button>
-                <button id="tab-pdf-btn" class="invoice-tab-btn" onclick="switchInvoiceTab('pdf')">
-                    <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> Fatura PDF Original
-                </button>
-            </div>
-            
-            <div class="invoice-scrollable-body">
-                <!-- Aba da Fatura Digital HTML -->
-                <div id="invoice-html-content" class="invoice-paper">
-                    <!-- Header do Documento -->
-                    <div class="invoice-brand-row">
-                        <div>
-                            <div class="logo" style="margin-bottom: 8px;">
-                                <i data-lucide="zap" class="fill-current"></i>
-                                <span>Voltora</span>
-                            </div>
-                            <p style="margin: 0; font-weight: 700; color: var(--slate-500); font-size: 11px; text-transform: uppercase;">Voltora Energia, S.A.</p>
-                        </div>
-                        <div class="invoice-company-details">
-                            Contribuinte N.º 509 876 543<br>
-                            Avenida da Boavista, 1200<br>
-                            4100-111 Porto, Portugal
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 24px;">
-                        <h2 style="font-size: 22px; font-weight: 900; margin: 0 0 8px 0; letter-spacing: -0.5px;">FATURA DE ELETRICIDADE</h2>
-                        <div style="display: flex; gap: 24px; font-size: 11px; color: var(--slate-500); font-weight: 600;">
-                            <span><strong>N.º Fatura:</strong> FT2024/049821</span>
-                            <span><strong>Emissão:</strong> 05/05/2024</span>
-                            <span><strong>Vencimento:</strong> 25/05/2024</span>
-                        </div>
-                    </div>
-
-                    <!-- Grelha de Informação do Cliente -->
-                    <div class="invoice-grid-meta">
-                        <div class="meta-box">
-                            <p class="meta-box-title">Dados do Cliente</p>
-                            <div class="meta-box-content">
-                                <p style="font-size: 15px; font-weight: 800; color: var(--slate-900); margin-bottom: 8px;">Senhor Costa</p>
-                                <p>Rua de Santa Catarina, 450, 3.º Dto</p>
-                                <p>4000-447 Porto</p>
-                                <p>Portugal</p>
-                                <p style="margin-top: 8px;"><strong>NIF:</strong> 210 987 654</p>
-                            </div>
-                        </div>
-                        <div class="meta-box">
-                            <p class="meta-box-title">Local de Consumo</p>
-                            <div class="meta-box-content">
-                                <p><strong>CPE:</strong> PT 0002 0000 1234 5678 AA</p>
-                                <p style="margin-top: 8px;"><strong>Morada de Fornecimento:</strong></p>
-                                <p>Rua de Santa Catarina, 450, 3.º Dto</p>
-                                <p>4000-447 Porto</p>
-                                <p style="margin-top: 8px;"><strong>Potência Contratada:</strong> 6,90 kVA (Simples)</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Caixa de Valor Total -->
-                    <div class="invoice-amount-summary">
-                        <div>
-                            <div class="invoice-amount-text">Total a Pagar</div>
-                            <div style="font-size: 11px; color: var(--slate-500); font-weight: 600; margin-top: 4px;">Pagar confortavelmente até 25/05/2024</div>
-                        </div>
-                        <div class="invoice-amount-value">76,98 €</div>
-                    </div>
-
-                    <!-- Tabela de Detalhe -->
-                    <h4 style="font-size: 14px; font-weight: 900; margin-bottom: 12px;">Detalhe de Faturação</h4>
-                    <table class="invoice-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 50%;">Descrição do Serviço / Tarifa</th>
-                                <th style="text-align: center;">Qtd</th>
-                                <th style="text-align: right;">Preço Unit.</th>
-                                <th style="text-align: center;">IVA</th>
-                                <th style="text-align: right;">Total (S/ IVA)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>Termo Fixo de Potência</strong> (6,90 kVA)</td>
-                                <td style="text-align: center;">30 dias</td>
-                                <td style="text-align: right;">0,4210 €/dia</td>
-                                <td style="text-align: center;">23%</td>
-                                <td style="text-align: right;">12,63 €</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Consumo de Energia Ativa</strong></td>
-                                <td style="text-align: center;">310 kWh</td>
-                                <td style="text-align: right;">0,1520 €/kWh</td>
-                                <td style="text-align: center;">23%</td>
-                                <td style="text-align: right;">47,12 €</td>
-                            </tr>
-                            <tr>
-                                <td>Imposto Especial de Consumo (IEC)</td>
-                                <td style="text-align: center;">310 kWh</td>
-                                <td style="text-align: right;">0,0010 €/kWh</td>
-                                <td style="text-align: center;">23%</td>
-                                <td style="text-align: right;">0,31 €</td>
-                            </tr>
-                            <tr>
-                                <td>Taxa de Exploração DGEG</td>
-                                <td style="text-align: center;">1 un</td>
-                                <td style="text-align: right;">0,0700 €/un</td>
-                                <td style="text-align: center;">23%</td>
-                                <td style="text-align: right;">0,07 €</td>
-                            </tr>
-                            <tr>
-                                <td>Contribuição Audiovisual (CAV)</td>
-                                <td style="text-align: center;">1 un</td>
-                                <td style="text-align: right;">2,8500 €/un</td>
-                                <td style="text-align: center;">6%</td>
-                                <td style="text-align: right;">2,85 €</td>
-                            </tr>
-                            <tr class="total-row">
-                                <td colspan="4">Subtotal (S/ IVA)</td>
-                                <td style="text-align: right;">62,98 €</td>
-                            </tr>
-                            <tr>
-                                <td colspan="4">Total IVA (6% e 23%)</td>
-                                <td style="text-align: right; font-weight: 700;">14,00 €</td>
-                            </tr>
-                            <tr style="font-size: 15px; font-weight: 900; background-color: var(--slate-50);">
-                                <td colspan="4" style="padding: 16px 12px;">Total a Pagar</td>
-                                <td style="text-align: right; padding: 16px 12px; color: var(--primary);">76,98 €</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- Bloco de Pagamento Multibanco -->
-                    <div class="multibanco-container">
-                        <div class="mb-logo-box">MB</div>
-                        <div class="mb-details">
-                            <strong style="font-size: 13px; color: #b45309;">Dados para Pagamento Multibanco</strong>
-                            <p style="margin: 2px 0 0 0; color: var(--slate-600);">Efetue o pagamento em qualquer caixa Multibanco ou através do seu Homebanking:</p>
-                            <div class="mb-grid">
-                                <strong>Entidade:</strong> <span>21678</span>
-                                <strong>Referência:</strong> <span>123 456 789</span>
-                                <strong>Montante:</strong> <span>76,98 €</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="invoice-test-banner">
-                        DOCUMENTO DE TESTE: Produzido exclusivamente para fins de demonstração técnica no ambiente UJET Demo. Sem validade fiscal ou legal.
-                    </div>
-                </div>
-
-                <!-- Aba de Visualização Dinâmica do PDF (Compatível com Android) -->
-                <div id="invoice-pdf-content" class="hidden">
-                    <!-- Conteúdo dinâmico preenchido pela função setupMobilePdfViewer() -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <footer>
-        <div class="container">
-            <p class="footer-text">&copy; 2024 Voltora Energy Systems Inc. Todos os direitos reservados.</p>
-        </div>
-    </footer>
-
-    <script>
-        // Inicializar ícones Lucide
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-
-        // Configuração da API Gemini
-        const apiKey = ""; 
-        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
-
-        async function callGemini(prompt, systemInstruction = "", retries = 5, delay = 1000) {
-            try {
-                const response = await fetch(`${API_URL}?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        systemInstruction: { parts: [{ text: systemInstruction }] }
-                    })
-                });
-                const data = await response.json();
-                return data.candidates?.[0]?.content?.parts?.[0]?.text || "Relatório de estratégia indisponível de momento.";
-            } catch (error) {
-                if (retries > 0) {
-                    await new Promise(r => setTimeout(r, delay));
-                    return callGemini(prompt, systemInstruction, retries - 1, delay * 2);
-                }
-                return "Falha na ligação à IA. ⚡";
-            }
-        }
-
-        const planBtn = document.getElementById('generate-plan-btn');
-        const planResult = document.getElementById('plan-result');
-        const planText = document.getElementById('plan-text');
-
-        planBtn.addEventListener('click', async () => {
-            const description = document.getElementById('plan-input').value;
-            if (!description.trim()) return;
-            
-            planBtn.innerHTML = "A processar...";
-            planBtn.disabled = true;
-            
-            const result = await callGemini(description, "És um motor de otimização de energia especializado para a Voltora. Fornece um plano de poupança de energia estruturado e de alta tecnologia em Português de Portugal (pt-PT).");
-            
-            planText.textContent = result;
-            planResult.classList.remove('hidden');
-            planBtn.innerHTML = '<i data-lucide="zap"></i><span>Gerar Plano</span>';
-            planBtn.disabled = false;
-            lucide.createIcons();
-            
-            planResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        });
-    </script>
-</body>
-</html>
+                CobrowseIO.currentSession.on('ended', function () {
+                  onExpire();
+                })
+              });
+            });
+          }
+
+          function onExpire() {
+            document.getElementById('support-code').innerHTML = `
+              <div class="code-box-display expired">
+                  <p class="code-box-sub" style="color: var(--orange);">O código de suporte expirou ou a sessão terminou.</p>
+              </div>
+            `;
+            document.getElementById('generate-button').style.display = 'inline-flex';
+          }
+
+          function openInvoice() {
+              document.getElementById('invoice-modal').classList.remove('hidden');
+              document.body.style.overflow = 'hidden';
+              if (typeof lucide !== 'undefined') lucide.createIcons();
+          }
+
+          function closeInvoice() {
+              document.getElementById('invoice-modal').classList.add('hidden');
+              document.body.style.overflow = 'auto';
+          }
+
+          function switchInvoiceTab(tabName) {
+              const htmlTab = document.getElementById('tab-html-btn');
+              const pdfTab = document.getElementById('tab-pdf-btn');
+              const htmlContent = document.getElementById('invoice-html-content');
+              const pdfContent = document.getElementById('invoice-pdf-content');
+
+              if (tabName === 'html') {
+                  htmlTab.classList.add('active-tab');
+                  pdfTab.classList.remove('active-tab');
+                  htmlContent.classList.remove('hidden');
+                  pdfContent.classList.add('hidden');
+              } else {
+                  pdfTab.classList.add('active-tab');
+                  htmlTab.classList.remove('active-tab');
+                  htmlContent.classList.add('hidden');
+                  pdfContent.classList.remove('hidden');
+                  if (typeof lucide !== 'undefined') lucide.createIcons();
+              }
+          }
+      </script>
+
+      <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+          :root {
+              --primary: #2563eb;
+              --primary-hover: #1d4ed8;
+              --primary-light: #eff6ff;
+              --slate-50: #f8fafc;
+              --slate-100: #f1f5f9;
+              --slate-200: #e2e8f0;
+              --slate-300: #cbd5e1;
+              --slate-400: #94a3b8;
+              --slate-500: #64748b;
+              --slate-600: #475569;
+              --slate-900: #0f172a;
+              --slate-950: #020617;
+              --white: #ffffff;
+              --green-50: #f0fdf4;
+              --green-600: #16a34a;
+              --purple-50: #faf5ff;
+              --purple-600: #9333ea;
+              --blue-900: #1e3a8a;
+              --blue-400: #60a5fa;
+              --orange: #f76901;
+              --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+              --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+              --shadow-blue: 0 10px 15px -3px rgba(37, 99, 235, 0.2);
+              --shadow-orange: 0 10px 15px -3px rgba(247, 105, 1, 0.3);
+          }
+
+          * { box-sizing: border-box; }
+          body {
+              font-family: 'Inter', -apple-system, sans-serif;
+              margin: 0; padding: 0;
+              background-color: var(--slate-50);
+              color: var(--slate-900);
+              line-height: 1.5;
+              scroll-behavior: smooth;
+          }
+
+          .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+          .flex { display: flex; }
+          .items-center { align-items: center; }
+          .justify-between { justify-content: space-between; }
+          .flex-col { flex-direction: column; }
+          .gap-2 { gap: 8px; }
+          .gap-4 { gap: 16px; }
+          .gap-10 { gap: 40px; }
+          .gap-16 { gap: 64px; }
+  
+          nav {
+              background: rgba(255, 255, 255, 0.8);
+              backdrop-filter: blur(12px);
+              border-bottom: 1px solid var(--slate-100);
+              position: sticky; top: 0; z-index: 50;
+              padding: 16px 0;
+          }
+          .logo {
+              font-size: 24px; font-weight: 900;
+              color: var(--primary); text-decoration: none;
+              display: flex; align-items: center; gap: 8px;
+          }
+          .nav-links { display: none; }
+  
+          @media (min-width: 768px) {
+              .nav-links { display: flex; }
+              .hero-wrapper { flex-direction: row !important; }
+              .feature-grid { grid-template-columns: repeat(3, 1fr) !important; }
+              .planner-form { flex-direction: row !important; }
+          }
+
+          .nav-link { color: var(--slate-500); text-decoration: none; font-weight: 700; font-size: 14px; transition: color 0.2s; }
+          .nav-link:hover { color: var(--primary); }
+
+          .btn {
+              font-family: inherit; cursor: pointer; border-radius: 12px;
+              font-weight: 700; font-size: 14px; padding: 10px 24px;
+              border: none; transition: all 0.2s;
+              display: inline-flex; align-items: center; gap: 8px;
+              text-decoration: none;
+          }
+          .btn-primary { background-color: var(--primary); color: var(--white); box-shadow: var(--shadow-blue); }
+          .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+          .btn-orange { background-color: var(--orange); color: var(--white); box-shadow: var(--shadow-orange); }
+          .btn-orange:hover { background-color: #e05e00; transform: translateY(-1px); }
+          .btn-secondary { background-color: var(--white); color: var(--slate-700); border: 2px solid var(--slate-200); }
+          .btn-secondary:hover { background-color: var(--slate-50); }
+          .btn-large { padding: 16px 32px; font-size: 18px; border-radius: 16px; }
+
+          .hero { padding: 96px 0; }
+          .hero-wrapper { display: flex; flex-direction: column; align-items: center; gap: 64px; }
+          .hero-content { flex: 1; }
+          .hero-visual { flex: 1; position: relative; width: 100%; }
+          .badge {
+              background-color: var(--primary-light); color: var(--primary);
+              padding: 8px 16px; border-radius: 9999px;
+              font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em;
+              display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px;
+          }
+          h1 { font-size: clamp(40px, 8vw, 72px); font-weight: 900; line-height: 1.1; letter-spacing: -0.04em; margin: 0 0 32px 0; }
+          .text-primary { color: var(--primary); }
+          .hero-description { font-size: 20px; color: var(--slate-500); font-weight: 500; max-width: 512px; margin-bottom: 32px; }
+          .visual-container { background-color: #dbeafe; border-radius: 48px; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; padding: 48px; position: relative; }
+          .usage-card { background-color: var(--white); padding: 32px; border-radius: 24px; box-shadow: var(--shadow-xl); width: 100%; transform: rotate(3deg); position: relative; z-index: 10; }
+          .usage-chart { display: flex; align-items: flex-end; gap: 12px; height: 192px; margin-top: 32px; }
+          .chart-bar { border-radius: 8px 8px 0 0; flex: 1; transition: height 0.3s; }
+
+          .features { background-color: var(--white); padding: 96px 0; border-top: 1px solid var(--slate-100); border-bottom: 1px solid var(--slate-100); }
+          .feature-grid { display: grid; grid-template-columns: 1fr; gap: 48px; }
+          .feature-card { display: flex; flex-direction: column; gap: 16px; }
+          .icon-box { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+          .feature-title { font-size: 24px; font-weight: 900; margin: 0; }
+          .feature-text { color: var(--slate-500); font-weight: 500; margin: 0; }
+
+          .planner { background-color: var(--blue-900); color: var(--white); padding: 96px 0; position: relative; overflow: hidden; text-align: center; }
+          .planner h2 { font-size: 48px; font-weight: 900; margin-bottom: 24px; }
+          .planner p { color: #dbeafe; font-size: 18px; margin-bottom: 48px; opacity: 0.8; }
+          .planner-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); padding: 32px; border-radius: 40px; border: 1px solid rgba(255, 255, 255, 0.1); max-width: 800px; margin: 0 auto;
+  text-align: left; box-shadow: var(--shadow-xl); }
+          .planner-form { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+          input[type="text"] { flex: 1; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 16px 24px; color: var(--white); font-family: inherit;
+  font-size: 16px; outline: none; transition: border-color 0.2s; }
+          input[type="text"]:focus { border-color: var(--blue-400); }
+          .plan-result { margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+          .plan-header { display: flex; align-items: center; gap: 12px; color: var(--blue-400); font-weight: 900; text-transform: uppercase; font-size: 12px; letter-spacing: 0.1em; margin-bottom: 16px; }
+          .plan-text { color: #eff6ff; white-space: pre-wrap; font-weight: 500; font-size: 18px; }
+
+          .cobrowse-section { background-color: var(--slate-100); padding: 96px 0; text-align: center; border-bottom: 1px solid var(--slate-200); }
+          .cobrowse-container { max-width: 600px; margin: 0 auto; background: var(--white); padding: 40px; border-radius: 32px; box-shadow: var(--shadow-lg); border: 1px solid var(--slate-200); }
+          .cobrowse-container h2 { font-size: 32px; font-weight: 900; margin: 0 0 16px 0; color: var(--slate-900); }
+          .cobrowse-container p { font-size: 16px; color: var(--slate-500); margin-bottom: 32px; font-weight: 500; }
+
+          .code-box-display { background-color: var(--slate-50); border: 2px dashed var(--slate-200); border-radius: 20px; padding: 24px; margin-top: 20px; animation: fadeIn 0.4s ease-out; }
+          .code-box-display.expired { border-color: #fdba74; background-color: #fff7ed; }
+          .code-box-label { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--primary); letter-spacing: 0.05em; margin: 0 0 12px 0; display: flex; align-items: center; justify-content:
+  center; gap: 6px; }
+          .code-digits { font-size: 42px; font-weight: 900; color: var(--slate-900); letter-spacing: 4px; margin-bottom: 12px; }
+          .code-box-sub { font-size: 13px !important; color: var(--slate-500); margin: 0 !important; line-height: 1.4; }
+
+          .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center;
+  justify-content: center; padding: 20px; }
+          .invoice-card { background-color: var(--white); width: 100%; max-width: 800px; max-height: 90vh; border-radius: 24px; box-shadow: var(--shadow-xl); overflow: hidden; border: 1px solid var(--slate-200);
+  display: flex; flex-direction: column; animation: fadeIn 0.3s ease-out; }
+          .invoice-card-header { padding: 20px 32px; border-bottom: 1px solid var(--slate-100); display: flex; justify-content: space-between; align-items: center; background: var(--slate-50); position: sticky;
+  top: 0; z-index: 20; }
+          .invoice-card-header h3 { margin: 0; font-size: 18px; font-weight: 800; color: var(--slate-900); display: flex; align-items: center; gap: 8px; }
+          .close-modal-btn { background: var(--white); border: 1px solid var(--slate-200); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor:
+  pointer; transition: all 0.2s; color: var(--slate-500); }
+          .close-modal-btn:hover { background-color: var(--slate-100); color: var(--slate-900); }
+
+          .invoice-tabs { display: flex; background-color: var(--slate-100); padding: 4px; border-radius: 12px; margin: 20px 32px 0 32px; gap: 4px; }
+          .invoice-tab-btn { flex: 1; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; color: var(--slate-600); border: none; background: none; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px; }
+          .invoice-tab-btn.active-tab { background-color: var(--white); color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+          .invoice-scrollable-body { flex: 1; overflow-y: auto; }
+          .invoice-paper { padding: 40px; color: var(--slate-900); font-size: 13px; }
+          .invoice-brand-row { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--primary); padding-bottom: 24px; margin-bottom: 24px; }
+          .invoice-company-details { text-align: right; font-size: 11px; color: var(--slate-500); line-height: 1.4; }
+          .invoice-grid-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; }
+          .meta-box { background-color: var(--slate-50); padding: 20px; border-radius: 16px; border: 1px solid var(--slate-100); }
+          .meta-box-title { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--primary); margin: 0 0 10px 0; letter-spacing: 0.05em; }
+          .meta-box-content p { margin: 4px 0; font-weight: 500; color: var(--slate-700); }
+          .meta-box-content strong { color: var(--slate-900); }
+          .invoice-amount-summary { background-color: var(--primary-light); border: 1.5px solid var(--primary); border-radius: 16px; padding: 20px; display: flex; justify-content: space-between; align-items:
+  center; margin-bottom: 32px; }
+          .invoice-amount-text { font-size: 14px; font-weight: 700; color: var(--primary); }
+          .invoice-amount-value { font-size: 32px; font-weight: 900; color: var(--primary); }
+          .invoice-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+          .invoice-table th { text-align: left; padding: 12px; border-bottom: 2px solid var(--slate-200); font-weight: 800; color: var(--slate-500); font-size: 11px; text-transform: uppercase; }
+          .invoice-table td { padding: 12px; border-bottom: 1px solid var(--slate-100); color: var(--slate-700); font-weight: 500; }
+          .invoice-table tr.total-row td { border-top: 2px solid var(--slate-200); font-weight: 800; color: var(--slate-900); }
+
+          .multibanco-container { background-color: #fef3c7; border: 1.5px solid #d97706; border-radius: 16px; padding: 24px; display: flex; align-items: center; gap: 24px; margin-bottom: 24px; }
+          .mb-logo-box { background-color: #0369a1; color: var(--white); font-weight: 900; font-style: italic; padding: 12px; border-radius: 8px; font-size: 18px; text-align: center; width: 60px; letter-spacing:
+  -1px; }
+          .mb-details { flex-grow: 1; font-size: 12px; }
+          .mb-grid { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin-top: 8px; }
+          .mb-grid strong { color: var(--slate-900); }
+
+          .invoice-test-banner { text-align: center; font-size: 10px; color: var(--slate-400); font-weight: 700; text-transform: uppercase; border-top: 1px solid var(--slate-100); padding-top: 16px; margin-top:
+  24px; }
+
+          .pdf-tab-body {
+              padding: 60px 40px;
+              text-align: center;
+              color: var(--slate-600);
+          }
+          .pdf-tab-body h4 { font-weight: 800; font-size: 18px; margin: 0 0 12px 0; color: var(--slate-900); }
+          .pdf-tab-body p { font-size: 14px; margin-bottom: 24px; }
+
+          @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+          footer { background-color: var(--slate-950); color: var(--white); padding: 80px 0; text-align: center; }
+          .footer-text { color: var(--slate-600); font-weight: 700; margin: 0; }
+
+          .hidden { display: none; }
+          .fill-current { fill: currentColor; }
+      </style>
+  </head>
+  <body>
+  
+      <nav>
+          <div class="container flex justify-between items-center">
+              <a href="#" class="logo">
+                  <i data-lucide="zap" class="fill-current"></i>
+                  <span>Voltora</span>
+              </a>
+              <div class="nav-links gap-10 items-center">
+                  <a href="#solutions" class="nav-link">Soluções</a>
+                  <a href="#planner" class="nav-link">Eco-Planner</a>
+                  <a href="#cobrowse" class="nav-link">Partilha de Ecrã</a>
+                  <a href="javascript:void(0)" onclick="openInvoice()" class="nav-link" style="color: var(--primary); font-weight: 800; display: flex; align-items: center; gap: 4px;">
+                      <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> Minha Fatura
+                  </a>
+                  <a href="#" class="nav-link">Suporte</a>
+              </div>
+              <button class="btn btn-primary" onclick="openInvoice()">Ver Fatura</button>
+          </div>
+      </nav>
+
+      <header class="hero">
+          <div class="container hero-wrapper">
+              <div class="hero-content">
+                  <div class="badge">
+                      <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> Energia Reimaginada
+                  </div>
+                  <h1>O futuro da energia é mais <span class="text-primary">inteligente.</span></h1>
+                  <p class="hero-description">
+                      Ligue a sua casa à rede do amanhã. Poupe até 25% nas faturas com a nossa otimização inteligente por IA.
+                  </p>
+                  <div class="flex gap-4">
+                      <button class="btn btn-primary btn-large" onclick="openInvoice()"><i data-lucide="file-text"></i> Abrir Fatura (76,98 €)</button>
+                      <a href="#cobrowse" class="btn btn-secondary btn-large">Suporte Co-Browse</a>
+                  </div>
+              </div>
+
+              <div class="hero-visual">
+                  <div class="visual-container">
+                      <div class="usage-card">
+                          <div class="flex justify-between items-center">
+                              <div>
+                                  <h3 style="margin:0; font-weight: 900; font-size: 20px;">Consumo Semanal</h3>
+                                  <p style="margin:0; font-size: 12px; color: var(--slate-400);">Análise em tempo real</p>
+                              </div>
+                              <i data-lucide="bar-chart-3" style="color: var(--primary);"></i>
+                          </div>
+                          <div class="usage-chart">
+                              <div class="chart-bar" style="height: 40%; background: #dbeafe;"></div>
+                              <div class="chart-bar" style="height: 65%; background: #bfdbfe;"></div>
+                              <div class="chart-bar" style="height: 90%; background: var(--primary); box-shadow: var(--shadow-blue);"></div>
+                              <div class="chart-bar" style="height: 85%; background: #3b82f6;"></div>
+                              <div class="chart-bar" style="height: 50%; background: #bfdbfe;"></div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </header>
+
+      <section id="solutions" class="features">
+          <div class="container">
+              <div class="feature-grid">
+                  <div class="feature-card">
+                      <div class="icon-box" style="background: var(--primary-light); color: var(--primary);">
+                          <i data-lucide="zap"></i>
+                      </div>
+                      <h3 class="feature-title">Monitorização em Tempo Real</h3>
+                      <p class="feature-text">Veja exatamente para onde vai cada watt em tempo real com a nossa tecnologia de rede inteligente.</p>
+                  </div>
+                  <div class="feature-card">
+                      <div class="icon-box" style="background: var(--green-50); color: var(--green-600);">
+                          <i data-lucide="leaf"></i>
+                      </div>
+                      <h3 class="feature-title">Eco-Otimização</h3>
+                      <p class="feature-text">A IA muda automaticamente para a produção solar quando a geração atinge o pico.</p>
+                  </div>
+                  <div class="feature-card">
+                      <div class="icon-box" style="background: var(--purple-50); color: var(--purple-600);">
+                          <i data-lucide="bell"></i>
+                      </div>
+                      <h3 class="feature-title">Alertas Inteligentes</h3>
+                      <p class="feature-text">Receba notificações antes dos picos de procura e poupe significativamente na sua fatura mensal.</p>
+                  </div>
+              </div>
+          </div>
+      </section>
+
+      <section id="planner" class="planner">
+          <div class="container">
+              <h2>Crie o seu Plano de <span style="color: var(--blue-400);">Energia com IA</span></h2>
+              <p>Descreva a configuração da sua casa e a nossa IA irá gerar uma estratégia de eficiência de alta tecnologia para si.</p>
+
+              <div class="planner-card">
+                  <div class="planner-form">
+                      <input id="plan-input" type="text" placeholder="ex: 'Casa T3, carro elétrico'...">
+                      <button id="generate-plan-btn" class="btn btn-primary" style="padding: 16px 32px;">
+                          <i data-lucide="zap"></i><span>Gerar Plano</span>
+                      </button>
+                  </div>
+                  <div id="plan-result" class="plan-result hidden">
+                      <div class="plan-header">
+                          <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Relatório de Estratégia
+                      </div>
+                      <div id="plan-text" class="plan-text"></div>
+                  </div>
+              </div>
+          </div>
+      </section>
+
+      <section id="cobrowse" class="cobrowse-section">
+          <div class="container">
+              <div class="cobrowse-container">
+                  <i data-lucide="monitor-play" style="width: 48px; height: 48px; color: var(--orange); margin-bottom: 16px;"></i>
+                  <h2>Suporte Remoto Co-Browse</h2>
+                  <p>Precisa de assistência técnica na sua área de cliente? Gere um código seguro de partilha de ecrã para ligar instantaneamente a um dos nossos técnicos dedicados.</p>
+
+                  <div id="support-code"></div>
+
+                  <button class="btn btn-orange btn-large" id="generate-button" onclick="generateSupportCode();" style="margin-top: 16px; width: 100%; justify-content: center;">
+                      <i data-lucide="phone-call"></i> Gerar Código de Suporte
+                  </button>
+              </div>
+          </div>
+      </section>
+
+      <div id="invoice-modal" class="modal-backdrop hidden">
+          <div class="invoice-card">
+              <div class="invoice-card-header">
+                  <h3><i data-lucide="file-text" style="color: var(--primary);"></i> Fatura do Cliente — Senhor Costa</h3>
+                  <button class="close-modal-btn" onclick="closeInvoice()">
+                      <i data-lucide="x"></i>
+                  </button>
+              </div>
+  
+              <div class="invoice-tabs">
+                  <button id="tab-html-btn" class="invoice-tab-btn active-tab" onclick="switchInvoiceTab('html')">
+                      <i data-lucide="laptop" style="width: 16px; height: 16px;"></i> Fatura Digital (HTML)
+                  </button>
+                  <button id="tab-pdf-btn" class="invoice-tab-btn" onclick="switchInvoiceTab('pdf')">
+                      <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> Fatura PDF Original
+                  </button>
+              </div>
+
+              <div class="invoice-scrollable-body">
+                  <div id="invoice-html-content" class="invoice-paper">
+                      <div class="invoice-brand-row">
+                          <div>
+                              <div class="logo" style="margin-bottom: 8px;">
+                                  <i data-lucide="zap" class="fill-current"></i>
+                                  <span>Voltora</span>
+                              </div>
+                              <p style="margin: 0; font-weight: 700; color: var(--slate-500); font-size: 11px; text-transform: uppercase;">Voltora Energia, S.A.</p>
+                          </div>
+                          <div class="invoice-company-details">
+                              Contribuinte N.º 509 876 543<br>
+                              Avenida da Boavista, 1200<br>
+                              4100-111 Porto, Portugal
+                          </div>
+                      </div>
+
+                      <div style="margin-bottom: 24px;">
+                          <h2 style="font-size: 22px; font-weight: 900; margin: 0 0 8px 0; letter-spacing: -0.5px;">FATURA DE ELETRICIDADE</h2>
+                          <div style="display: flex; gap: 24px; font-size: 11px; color: var(--slate-500); font-weight: 600;">
+                              <span><strong>N.º Fatura:</strong> FT2024/049821</span>
+                              <span><strong>Emissão:</strong> 05/05/2024</span>
+                              <span><strong>Vencimento:</strong> 25/05/2024</span>
+                          </div>
+                      </div>
+  
+                      <div class="invoice-grid-meta">
+                          <div class="meta-box">
+                              <p class="meta-box-title">Dados do Cliente</p>
+                              <div class="meta-box-content">
+                                  <p style="font-size: 15px; font-weight: 800; color: var(--slate-900); margin-bottom: 8px;">Senhor Costa</p>
+                                  <p>Rua de Santa Catarina, 450, 3.º Dto</p>
+                                  <p>4000-447 Porto</p>
+                                  <p>Portugal</p>
+                                  <p style="margin-top: 8px;"><strong>NIF:</strong> 210 987 654</p>
+                              </div>
+                          </div>
+                          <div class="meta-box">
+                              <p class="meta-box-title">Local de Consumo</p>
+                              <div class="meta-box-content">
+                                  <p><strong>CPE:</strong> PT 0002 0000 1234 5678 AA</p>
+                                  <p style="margin-top: 8px;"><strong>Morada de Fornecimento:</strong></p>
+                                  <p>Rua de Santa Catarina, 450, 3.º Dto</p>
+                                  <p>4000-447 Porto</p>
+                                  <p style="margin-top: 8px;"><strong>Potência Contratada:</strong> 6,90 kVA (Simples)</p>
+                              </div>
+                          </div>
+                      </div>
+  
+                      <div class="invoice-amount-summary">
+                          <div>
+                              <div class="invoice-amount-text">Total a Pagar</div>
+                              <div style="font-size: 11px; color: var(--slate-500); font-weight: 600; margin-top: 4px;">Pagar confortavelmente até 25/05/2024</div>
+                          </div>
+                          <div class="invoice-amount-value">76,98 €</div>
+                      </div>
+  
+                      <h4 style="font-size: 14px; font-weight: 900; margin-bottom: 12px;">Detalhe de Faturação</h4>
+                      <table class="invoice-table">
+                          <thead>
+                              <tr>
+                                  <th style="width: 50%;">Descrição do Serviço / Tarifa</th>
+                                  <th style="text-align: center;">Qtd</th>
+                                  <th style="text-align: right;">Preço Unit.</th>
+                                  <th style="text-align: center;">IVA</th>
+                                  <th style="text-align: right;">Total (S/ IVA)</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              <tr><td><strong>Termo Fixo de Potência</strong> (6,90 kVA)</td><td style="text-align: center;">30 dias</td><td style="text-align: right;">0,4210 €/dia</td><td style="text-align: 
+  center;">23%</td><td style="text-align: right;">12,63 €</td></tr>
+                              <tr><td><strong>Consumo de Energia Ativa</strong></td><td style="text-align: center;">310 kWh</td><td style="text-align: right;">0,1520 €/kWh</td><td style="text-align: 
+  center;">23%</td><td style="text-align: right;">47,12 €</td></tr>
+                              <tr><td>Imposto Especial de Consumo (IEC)</td><td style="text-align: center;">310 kWh</td><td style="text-align: right;">0,0010 €/kWh</td><td style="text-align: center;">23%</td><td 
+  style="text-align: right;">0,31 €</td></tr>
+                              <tr><td>Taxa de Exploração DGEG</td><td style="text-align: center;">1 un</td><td style="text-align: right;">0,0700 €/un</td><td style="text-align: center;">23%</td><td 
+  style="text-align: right;">0,07 €</td></tr>
+                              <tr><td>Contribuição Audiovisual (CAV)</td><td style="text-align: center;">1 un</td><td style="text-align: right;">2,8500 €/un</td><td style="text-align: center;">6%</td><td 
+  style="text-align: right;">2,85 €</td></tr>
+                              <tr class="total-row"><td colspan="4">Subtotal (S/ IVA)</td><td style="text-align: right;">62,98 €</td></tr>
+                              <tr><td colspan="4">Total IVA (6% e 23%)</td><td style="text-align: right; font-weight: 700;">14,00 €</td></tr>
+                              <tr style="font-size: 15px; font-weight: 900; background-color: var(--slate-50);">
+                                  <td colspan="4" style="padding: 16px 12px;">Total a Pagar</td>
+                                  <td style="text-align: right; padding: 16px 12px; color: var(--primary);">76,98 €</td>
+                              </tr>
+                          </tbody>
+                      </table>
+  
+                      <div class="multibanco-container">
+                          <div class="mb-logo-box">MB</div>
+                          <div class="mb-details">
+                              <strong style="font-size: 13px; color: #b45309;">Dados para Pagamento Multibanco</strong>
+                              <p style="margin: 2px 0 0 0; color: var(--slate-600);">Efetue o pagamento em qualquer caixa Multibanco ou através do seu Homebanking:</p>
+                              <div class="mb-grid">
+                                  <strong>Entidade:</strong> <span>21678</span>
+                                  <strong>Referência:</strong> <span>123 456 789</span>
+                                  <strong>Montante:</strong> <span>76,98 €</span>
+                              </div>
+                          </div>
+                      </div>
+
+                      <div class="invoice-test-banner">
+                          DOCUMENTO DE TESTE: Produzido exclusivamente para fins de demonstração técnica no ambiente UJET Demo. Sem validade fiscal ou legal.
+                      </div>
+                  </div>
+
+                  <!-- ===== AQUI ESTÁ A MUDANÇA: link simples que o Cobrowse intercepta ===== -->
+                  <div id="invoice-pdf-content" class="hidden">
+                      <div class="pdf-tab-body">
+                          <i data-lucide="file-text" style="width: 56px; height: 56px; color: var(--primary); margin-bottom: 16px;"></i>
+                          <h4>Fatura PDF Original</h4>
+                          <p>Clique para abrir o PDF no visualizador Cobrowse.<br>O agente conseguirá ver o documento durante a sessão de partilha de ecrã (iOS e Android).</p>
+                          <a href="Fatura%20Voltora%20Demo.pdf" class="btn btn-primary btn-large">
+                              <i data-lucide="external-link"></i> Abrir Fatura PDF
+                          </a>
+                      </div>
+                  </div>
+                  <!-- ====================================================================== -->
+              </div>
+          </div>
+      </div>
+
+      <footer>
+          <div class="container">
+              <p class="footer-text">&copy; 2024 Voltora Energy Systems Inc. Todos os direitos reservados.</p>
+          </div>
+      </footer>
+
+      <script>
+          if (typeof lucide !== 'undefined') lucide.createIcons();
+
+          const apiKey = "";
+          const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
+
+          async function callGemini(prompt, systemInstruction = "", retries = 5, delay = 1000) {
+              try {
+                  const response = await fetch(`${API_URL}?key=${apiKey}`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                          contents: [{ parts: [{ text: prompt }] }],
+                          systemInstruction: { parts: [{ text: systemInstruction }] }
+                      })
+                  });
+                  const data = await response.json();
+                  return data.candidates?.[0]?.content?.parts?.[0]?.text || "Relatório de estratégia indisponível de momento.";
+              } catch (error) {
+                  if (retries > 0) {
+                      await new Promise(r => setTimeout(r, delay));
+                      return callGemini(prompt, systemInstruction, retries - 1, delay * 2);
+                  }
+                  return "Falha na ligação à IA. ⚡";
+              }
+          }
+
+          const planBtn = document.getElementById('generate-plan-btn');
+          const planResult = document.getElementById('plan-result');
+          const planText = document.getElementById('plan-text');
+
+          planBtn.addEventListener('click', async () => {
+              const description = document.getElementById('plan-input').value;
+              if (!description.trim()) return;
+
+              planBtn.innerHTML = "A processar...";
+              planBtn.disabled = true;
+  
+              const result = await callGemini(description, "És um motor de otimização de energia especializado para a Voltora. Fornece um plano de poupança de energia estruturado e de alta tecnologia em Português 
+  de Portugal (pt-PT).");
+
+              planText.textContent = result;
+              planResult.classList.remove('hidden');
+              planBtn.innerHTML = '<i data-lucide="zap"></i><span>Gerar Plano</span>';
+              planBtn.disabled = false;
+              lucide.createIcons();
+
+              planResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          });
+      </script>
+  </body>
+  </html>

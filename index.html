@@ -7,6 +7,9 @@
 
       <script src="https://unpkg.com/lucide@latest"></script>
 
+      <!-- PDF.js LEGACY build - compatível com iOS Safari -->
+      <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js"></script>
+
       <script type="text/javascript">
           var urlParams = new URLSearchParams(window.location.search);
 
@@ -17,10 +20,6 @@
 
           CobrowseIO.license = urlParams.get('license') || '0Blc4UGxQHHDNA';
           CobrowseIO.api = urlParams.get('api') || 'https://api.cobrowse.io';
-
-          // Cobrowse intercepta cliques nestes links e renderiza o PDF
-          // num visualizador interno capturável pelo agente (iOS + Android).
-          CobrowseIO.pdfLinks = ['*.pdf', '*/pdfs/*.pdf'];
 
           CobrowseIO.client().then(function(){
               CobrowseIO.start({allowIFrameStart:true});
@@ -64,6 +63,8 @@
               document.body.style.overflow = 'auto';
           }
 
+          var pdfRendered = false;
+  
           function switchInvoiceTab(tabName) {
               const htmlTab = document.getElementById('tab-html-btn');
               const pdfTab = document.getElementById('tab-pdf-btn');
@@ -80,7 +81,65 @@
                   htmlTab.classList.remove('active-tab');
                   htmlContent.classList.add('hidden');
                   pdfContent.classList.remove('hidden');
-                  if (typeof lucide !== 'undefined') lucide.createIcons();
+  
+                  if (!pdfRendered) {
+                      renderPdfToCanvas('Fatura%20Voltora%20Demo.pdf');
+                      pdfRendered = true;
+                  }
+              }
+          }
+
+          // Renderiza cada página do PDF para um canvas DOM (capturável pelo Cobrowse em iOS e Android)
+          async function renderPdfToCanvas(url) {
+              const container = document.getElementById('pdf-canvas-container');
+              container.innerHTML = '<p style="text-align:center; padding:40px; color: var(--slate-500);">A carregar fatura...</p>';
+
+              try {
+                  pdfjsLib.GlobalWorkerOptions.workerSrc =
+                      'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.worker.min.js';
+
+                  const pdf = await pdfjsLib.getDocument(url).promise;
+                  container.innerHTML = '';
+  
+                  // iOS Safari tem limite máximo de área de canvas (~16M pixels).
+                  // Acima disto o canvas renderiza completamente em branco.
+                  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                  const MAX_CANVAS_PIXELS = isIOS ? 5000000 : 16000000;
+
+                  for (let i = 1; i <= pdf.numPages; i++) {
+                      const page = await pdf.getPage(i);
+
+                      const containerWidth = container.clientWidth - 32;
+                      const unscaledViewport = page.getViewport({ scale: 1 });
+                      let scale = Math.min(2, containerWidth / unscaledViewport.width);
+
+                      let viewport = page.getViewport({ scale });
+                      const area = viewport.width * viewport.height;
+                      if (area > MAX_CANVAS_PIXELS) {
+                          scale = scale * Math.sqrt(MAX_CANVAS_PIXELS / area);
+                          viewport = page.getViewport({ scale });
+                      }
+
+                      const canvas = document.createElement('canvas');
+                      canvas.width = Math.floor(viewport.width);
+                      canvas.height = Math.floor(viewport.height);
+                      canvas.style.cssText = 'display:block;margin:0 auto 16px;max-width:100%;height:auto;box-shadow:var(--shadow-lg);border-radius:8px;background:white;';
+                      container.appendChild(canvas);
+
+                      await page.render({
+                          canvasContext: canvas.getContext('2d'),
+                          viewport: viewport
+                      }).promise;
+                  }
+              } catch (err) {
+                  console.error('Falha ao carregar PDF:', err);
+                  container.innerHTML = `
+                      <div style="padding:40px; text-align:center; color: var(--slate-600);">
+                          <h4 style="font-weight:800; font-size:16px; margin-bottom:8px;">Não foi possível carregar o PDF</h4>
+                          <p style="margin-bottom:16px; font-size:13px;">Verifique se o ficheiro está disponível no servidor.</p>
+                          <a href="${url}" download class="btn btn-primary" style="display:inline-flex;">Descarregar Fatura PDF</a>
+                      </div>
+                  `;
               }
           }
       </script>
@@ -134,7 +193,7 @@
           .gap-4 { gap: 16px; }
           .gap-10 { gap: 40px; }
           .gap-16 { gap: 64px; }
-  
+
           nav {
               background: rgba(255, 255, 255, 0.8);
               backdrop-filter: blur(12px);
@@ -268,13 +327,11 @@
           .invoice-test-banner { text-align: center; font-size: 10px; color: var(--slate-400); font-weight: 700; text-transform: uppercase; border-top: 1px solid var(--slate-100); padding-top: 16px; margin-top:
   24px; }
 
-          .pdf-tab-body {
-              padding: 60px 40px;
-              text-align: center;
-              color: var(--slate-600);
+          #pdf-canvas-container {
+              padding: 16px;
+              background-color: var(--slate-100);
+              min-height: 400px;
           }
-          .pdf-tab-body h4 { font-weight: 800; font-size: 18px; margin: 0 0 12px 0; color: var(--slate-900); }
-          .pdf-tab-body p { font-size: 14px; margin-bottom: 24px; }
 
           @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -344,7 +401,7 @@
               </div>
           </div>
       </header>
-
+  
       <section id="solutions" class="features">
           <div class="container">
               <div class="feature-grid">
@@ -372,7 +429,7 @@
               </div>
           </div>
       </section>
-
+  
       <section id="planner" class="planner">
           <div class="container">
               <h2>Crie o seu Plano de <span style="color: var(--blue-400);">Energia com IA</span></h2>
@@ -445,7 +502,7 @@
                               4100-111 Porto, Portugal
                           </div>
                       </div>
-
+  
                       <div style="margin-bottom: 24px;">
                           <h2 style="font-size: 22px; font-weight: 900; margin: 0 0 8px 0; letter-spacing: -0.5px;">FATURA DE ELETRICIDADE</h2>
                           <div style="display: flex; gap: 24px; font-size: 11px; color: var(--slate-500); font-weight: 600;">
@@ -454,7 +511,7 @@
                               <span><strong>Vencimento:</strong> 25/05/2024</span>
                           </div>
                       </div>
-  
+
                       <div class="invoice-grid-meta">
                           <div class="meta-box">
                               <p class="meta-box-title">Dados do Cliente</p>
@@ -485,7 +542,7 @@
                           </div>
                           <div class="invoice-amount-value">76,98 €</div>
                       </div>
-  
+
                       <h4 style="font-size: 14px; font-weight: 900; margin-bottom: 12px;">Detalhe de Faturação</h4>
                       <table class="invoice-table">
                           <thead>
@@ -535,18 +592,9 @@
                       </div>
                   </div>
 
-                  <!-- ===== AQUI ESTÁ A MUDANÇA: link simples que o Cobrowse intercepta ===== -->
                   <div id="invoice-pdf-content" class="hidden">
-                      <div class="pdf-tab-body">
-                          <i data-lucide="file-text" style="width: 56px; height: 56px; color: var(--primary); margin-bottom: 16px;"></i>
-                          <h4>Fatura PDF Original</h4>
-                          <p>Clique para abrir o PDF no visualizador Cobrowse.<br>O agente conseguirá ver o documento durante a sessão de partilha de ecrã (iOS e Android).</p>
-                          <a href="Fatura%20Voltora%20Demo.pdf" class="btn btn-primary btn-large">
-                              <i data-lucide="external-link"></i> Abrir Fatura PDF
-                          </a>
-                      </div>
+                      <div id="pdf-canvas-container"></div>
                   </div>
-                  <!-- ====================================================================== -->
               </div>
           </div>
       </div>
@@ -594,7 +642,7 @@
 
               planBtn.innerHTML = "A processar...";
               planBtn.disabled = true;
-  
+
               const result = await callGemini(description, "És um motor de otimização de energia especializado para a Voltora. Fornece um plano de poupança de energia estruturado e de alta tecnologia em Português 
   de Portugal (pt-PT).");
 
